@@ -14,7 +14,9 @@
       "email": "evgen@micromagicman.ru"
     }
   ],
-  "require": {},
+  "require": {
+    "illuminate/support": "^10.28"
+  },
   "extra": {
     "laravel": {
       "providers": [
