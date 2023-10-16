@@ -1,0 +1,25 @@
+{
+  "name": "micromagicman/laravel-telegram-webapp",
+  "description": "Laravel middleware for Telegram WebApp data validation",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Micromagicman\\TelegramWebApp\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "micromagicman",
+      "email": "evgen@micromagicman.ru"
+    }
+  ],
+  "require": {},
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Micromagicman\\TelegramWebApp\\WebAppDataValidationProvider"
+      ]
+    }
+  }
+}
