@@ -4,6 +4,9 @@
     "type": "library",
     "license": "MIT",
     "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-4": {
             "Micromagicman\\TelegramWebApp\\": "src/"
         }
@@ -37,7 +40,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "TelegramWebAppServiceProvider"
+                "Micromagicman\\TelegramWebApp\\TelegramWebAppServiceProvider"
             ],
             "aliases": {
                 "TelegramWebApp": "Micromagicman\\TelegramWebApp\\Facade\\TelegramFacade"

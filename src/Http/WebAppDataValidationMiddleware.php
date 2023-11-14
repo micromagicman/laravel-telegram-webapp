@@ -16,11 +16,12 @@ class WebAppDataValidationMiddleware
     {
         $enabled = config( 'telegram-webapp.enabled' );
         if ( $enabled && !$this->webAppService->verifyInitData( $request ) ) {
-            Log::error( "User with Telegram WebAppData {webAppData} is invalid!",
-                [ 'webAppData' => $request->query() ] );
+            Log::error(
+                'Telegram WebApp User is invalid!',
+                [ $request->query() ]
+            );
             $this->webAppService->abortWithError();
         }
-        Log::debug( "User with WebAppData {webAppData} is valid", [ 'webAppData' => $request->query() ] );
         return $next( $request );
     }
 }

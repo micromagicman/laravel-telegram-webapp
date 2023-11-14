@@ -9,7 +9,11 @@ use Micromagicman\TelegramWebApp\Util\CryptoUtils;
 
 class TelegramWebAppService
 {
-    private const HASH_QUERY_PARAMETER_KEY = "hash";
+    private const HASH_QUERY_PARAMETER_KEY = 'hash';
+
+    private const USER_QUERY_PARAMETER_KEY = 'user';
+
+    private const SHA256_TOKEN_HASH_KEY = 'WebAppData';
 
     private string $telegramBotToken;
 
@@ -31,9 +35,7 @@ class TelegramWebAppService
 
     public function verifyInitData( ?Request $request = null ): bool
     {
-        Log::debug( "New Telegram webapp request with query params:", [ $request->query() ] );
         $queryParams = $request->query();
-
         if ( !array_key_exists( self::HASH_QUERY_PARAMETER_KEY, $queryParams ) ) {
             return false;
         }
@@ -45,12 +47,12 @@ class TelegramWebAppService
     public function getWebAppUser( ?Request $request = null ): ?TelegramUser
     {
         $requestQuery = !$request ? \Illuminate\Support\Facades\Request::query() : $request->query();
-        if ( !array_key_exists( 'user', $requestQuery ) ) {
+        if ( !array_key_exists( self::USER_QUERY_PARAMETER_KEY, $requestQuery ) ) {
             return null;
         }
-        $telegramUserData = json_decode( $requestQuery['user'], JSON_OBJECT_AS_ARRAY );
+        $telegramUserData = json_decode( $requestQuery[ self::USER_QUERY_PARAMETER_KEY ], JSON_OBJECT_AS_ARRAY );
         if ( JSON_ERROR_NONE !== json_last_error() ) {
-            Log::error( "Error parsing Telegram WebApp user data from json" );
+            Log::error( "Error parsing Telegram WebApp user data from json", [ $requestQuery ] );
             return null;
         }
         return new TelegramUser( $telegramUserData );
@@ -63,19 +65,19 @@ class TelegramWebAppService
      */
     private function createHashFromQueryString( array $queryParams ): string
     {
-        $dataDigestKey = CryptoUtils::hmacSHA256( $this->telegramBotToken, 'WebAppData', true );
+        $dataDigestKey = CryptoUtils::hmacSHA256( $this->telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
         $dataWithoutHash = array_filter(
             $queryParams,
             fn( $key ) => $key !== self::HASH_QUERY_PARAMETER_KEY,
             ARRAY_FILTER_USE_KEY
         );
         ksort( $dataWithoutHash );
-        $dataCheckString = implode(
-            "\n",
+        $dataCheckString = implode( // 3 * O(N) ~ O(N)
+            PHP_EOL,
             array_map(
                 fn( string $key, string $value ) => "$key=$value",
                 array_keys( $dataWithoutHash ),
-                array_values( $dataWithoutHash )
+                $dataWithoutHash
             )
         );
         return CryptoUtils::hmacSHA256( $dataCheckString, $dataDigestKey );

@@ -40,17 +40,5 @@ return [
     'error' => [
         'status' => 403,
         'message' => 'Telegram WebApp data is not valid'
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Telegram WebApp initData format options
-    |--------------------------------------------------------------------------
-    | TODO
-    */
-    'initData' => [
-        'headers' => [
-            'hash' => 'hash',
-        ]
     ]
 ];
