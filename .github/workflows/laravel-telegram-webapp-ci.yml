@@ -1,0 +1,19 @@
+name: Laravel Telegram WebApp CI
+on:
+  pull_request:
+    branches: [ master, develop ]
+jobs:
+  laravel-tests:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Copy .env.example to .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Install composer dependencies
+        run: composer install
+      - name: Set required directory permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Generate encryption key
+        run: php artisan key:generate
+      - name: Run unit tests via PHPUnit
+        run: ./vendor/bin/phpunit
