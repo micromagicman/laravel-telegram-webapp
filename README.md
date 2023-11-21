@@ -1,6 +1,7 @@
 # Laravel Telegram WebApp package
 
 ![build](https://github.com/micromagicman/laravel-telegram-webapp/actions/workflows/laravel-telegram-webapp-ci.yml/badge.svg)
+[![codecov](https://codecov.io/github/micromagicman/laravel-telegram-webapp/graph/badge.svg?token=ZSVF7MGB38)](https://codecov.io/github/micromagicman/laravel-telegram-webapp)
 
 Laravel package that allows you to process commands from Telegram MiniApp with user verification according to
 [Telegram MiniApp developer documentation](https://core.telegram.org/bots/webapps), as well as obtaining information
