@@ -6,7 +6,7 @@ use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 if ( !function_exists( 'telegramWebApp' ) ) {
 
     /**
-     * Get Telegram WebApp Service
+     * Get Telegram MiniApp Service
      */
     function telegramWebApp(): TelegramWebAppService
     {
@@ -17,7 +17,7 @@ if ( !function_exists( 'telegramWebApp' ) ) {
 if ( !function_exists( 'telegramUser' ) ) {
 
     /**
-     * Get Telegram WebApp User
+     * Get Telegram MiniApp User
      */
     function telegramUser(): TelegramUser
     {

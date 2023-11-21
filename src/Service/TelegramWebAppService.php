@@ -7,32 +7,37 @@ use Illuminate\Support\Facades\Log;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Util\CryptoUtils;
 
+/**
+ * Telegram MiniApp service functions
+ */
 class TelegramWebAppService
 {
+    /**
+     * A name of hash query parameter from Telegram
+     */
     private const HASH_QUERY_PARAMETER_KEY = 'hash';
 
+    /**
+     * A name of user query parameter from Telegram
+     */
     private const USER_QUERY_PARAMETER_KEY = 'user';
 
+    /**
+     * A key for hashing a key that will be used to calculate the hash from the data received via Telegram MiniApp
+     */
     private const SHA256_TOKEN_HASH_KEY = 'WebAppData';
-
-    private string $telegramBotToken;
-
-    private int $errorStatusCode;
-
-    private string $errorMessage;
-
-    public function __construct()
-    {
-        $this->telegramBotToken = config( 'telegram-webapp.botToken' );
-        $this->errorStatusCode = config( 'telegram-webapp.error.status' );
-        $this->errorMessage = config( 'telegram-webapp.error.message' );
-    }
 
     public function abortWithError( array $errorMessageParams = [] ): void
     {
-        abort( $this->errorStatusCode, __( $this->errorMessage, $errorMessageParams ) );
+        $errorMessage = config( 'telegram-webapp.error.message' );
+        $statusCode = config( 'telegram-webapp.error.status' );
+        abort( $statusCode, __( $errorMessage, $errorMessageParams ) );
     }
 
+    /**
+     * Validate data received via the Mini App, one should send the data from the Telegram.WebApp.initData field.
+     * The data is a query string, which is composed of a series of field-value pairs.
+     */
     public function verifyInitData( ?Request $request = null ): bool
     {
         $queryParams = $request->query();
@@ -44,6 +49,9 @@ class TelegramWebAppService
         return $requestHash === $hashFromQueryString;
     }
 
+    /**
+     * Get Telegram User who sent request
+     */
     public function getWebAppUser( ?Request $request = null ): ?TelegramUser
     {
         $requestQuery = !$request ? \Illuminate\Support\Facades\Request::query() : $request->query();
@@ -65,7 +73,8 @@ class TelegramWebAppService
      */
     private function createHashFromQueryString( array $queryParams ): string
     {
-        $dataDigestKey = CryptoUtils::hmacSHA256( $this->telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
+        $telegramBotToken = config( 'telegram-webapp.botToken' );
+        $dataDigestKey = CryptoUtils::hmacSHA256( $telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
         $dataWithoutHash = array_filter(
             $queryParams,
             fn( $key ) => $key !== self::HASH_QUERY_PARAMETER_KEY,

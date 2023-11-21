@@ -8,21 +8,44 @@ namespace Micromagicman\TelegramWebApp\Dto;
 class TelegramUser
 {
     /**
-     * Identifier (chat id)
+     * A unique identifier for the user.
      * @var int
      */
     private int $id;
 
+    /**
+     * First name of the user.
+     * @var string
+     */
     private string $first_name;
 
+    /**
+     * Last name of the user.
+     * @var string
+     */
     private string $last_name;
 
+    /**
+     * Username of the user.
+     * @var string
+     */
     private string $username;
 
+    /**
+     * Telegram user's current language as 2-char code
+     * @var string
+     */
     private string $language_code;
 
+    /**
+     * true, if this user is a Telegram Premium user
+     */
     private bool $is_premium;
 
+    /**
+     * true, if this user allowed the bot to message them
+     * @var bool
+     */
     private bool $allows_write_to_pm;
 
     public function __construct( array $telegramUserData )

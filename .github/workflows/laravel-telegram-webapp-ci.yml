@@ -28,3 +28,7 @@ jobs:
         run: composer install --prefer-dist --no-progress
       - name: run tests
         run: ./vendor/bin/phpunit
+      - name: upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

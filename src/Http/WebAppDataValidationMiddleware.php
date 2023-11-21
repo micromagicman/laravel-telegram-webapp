@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 
+/**
+ * Middleware that provides a mechanism for validating Telegram MiniApp users
+ */
 class WebAppDataValidationMiddleware
 {
     public function __construct(

@@ -4,19 +4,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Telegram WebApp data validation switch
+    | Telegram MiniApp data validation switch
     |--------------------------------------------------------------------------
-    | TODO
     */
     'enabled' => (bool)env( 'TELEGRAM_WEBAPP_DATA_VALIDATION_ENABLED', true ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Path to script (.js) which initializes Telegram MiniApp on your frontend app
+    |--------------------------------------------------------------------------
+    */
     'webAppScriptLocation' => 'https://telegram.org/js/telegram-web-app.js',
 
     /*
     |--------------------------------------------------------------------------
-    | Telegram Bot Token
+    | Your Telegram bot token
     |--------------------------------------------------------------------------
-    | TODO
     */
     'botToken' => env( 'TELEGRAM_BOT_TOKEN', '' ),
 
@@ -24,21 +27,12 @@ return [
     |--------------------------------------------------------------------------
     | HTTP error response format options
     |--------------------------------------------------------------------------
-    | TODO
-    */
-    'authDate' => [
-        'validation' => false,
-        'timeoutMillis' => 360000 // 1 hour
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | HTTP error response format options
-    |--------------------------------------------------------------------------
-    | TODO
     */
     'error' => [
+        // HTTP status code when Telegram MiniApp data validation fails
         'status' => 403,
+        // Error message when Telegram MiniApp data validation fails
+        // May contain placeholders for parameterizing the message
         'message' => 'Telegram WebApp data is not valid'
     ]
 ];
