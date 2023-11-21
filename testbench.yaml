@@ -1,0 +1,14 @@
+providers:
+  - Micromagicman\TelegramWebApp\TelegramWebAppServiceProvider
+
+workbench:
+  start: '/'
+  install: true
+  discovers:
+    web: true
+    api: true
+    commands: false
+    views: true
+  build: []
+  assets: []
+  sync: []
