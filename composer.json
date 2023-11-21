@@ -1,25 +1,65 @@
 {
-  "name": "micromagicman/laravel-telegram-webapp",
-  "description": "Laravel middleware for Telegram WebApp data validation",
-  "type": "library",
-  "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "Micromagicman\\TelegramWebApp\\": "src/"
+    "name": "micromagicman/laravel-telegram-webapp",
+    "description": "Laravel middleware for Telegram WebApp data validation",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["telegram", "miniapp", "bot", "laravel"],
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "Micromagicman\\TelegramWebApp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Micromagicman\\TelegramWebApp\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "authors": [
+        {
+            "name": "micromagicman",
+            "email": "evgen@micromagicman.ru"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "illuminate/support": "^10.28",
+        "illuminate/routing": "^10.28"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "phpunit/phpunit": "^10.4",
+        "orchestra/testbench": "^8.14",
+        "nunomaduro/collision": "^7.8",
+        "phpunit/php-code-coverage": "^10.1"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Micromagicman\\TelegramWebApp\\TelegramWebAppServiceProvider"
+            ],
+            "aliases": {
+                "TelegramWebApp": "Micromagicman\\TelegramWebApp\\Facade\\TelegramFacade"
+            }
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ]
     }
-  },
-  "authors": [
-    {
-      "name": "micromagicman",
-      "email": "evgen@micromagicman.ru"
-    }
-  ],
-  "require": {},
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Micromagicman\\TelegramWebApp\\WebAppDataValidationProvider"
-      ]
-    }
-  }
 }
