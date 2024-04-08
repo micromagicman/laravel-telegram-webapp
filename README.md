@@ -7,6 +7,13 @@ Laravel package that allows you to process commands from Telegram MiniApp with u
 [Telegram MiniApp developer documentation](https://core.telegram.org/bots/webapps), as well as obtaining information
 about the Telegram user who sent the request
 
+## Requirements
+
+| Laravel | micromagicman/laravel-telegram-webapp |
+|---------|---------------------------------------|
+| 10.x    | 1.x.x                                 |
+| 11.x    | 2.x.x                                 |
+
 ## Install
 
 ### Via composer
