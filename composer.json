@@ -2,7 +2,6 @@
     "name": "micromagicman/laravel-telegram-webapp",
     "description": "Laravel middleware for Telegram WebApp data validation",
     "type": "library",
-    "version": "2.0.0",
     "license": "MIT",
     "keywords": ["telegram", "miniapp", "bot", "laravel"],
     "autoload": {
@@ -34,10 +33,10 @@
     },
     "require-dev": {
         "ext-dom": "*",
-        "phpunit/phpunit": "^11.0",
+        "phpunit/phpunit": "11.0.10",
         "orchestra/testbench": "^9.0.0",
         "nunomaduro/collision": "^8.0",
-        "phpunit/php-code-coverage": "^11.0"
+        "phpunit/php-code-coverage": "^11.0.0"
     },
     "extra": {
         "laravel": {
