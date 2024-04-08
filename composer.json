@@ -27,16 +27,16 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
-        "illuminate/support": "^10.28",
-        "illuminate/routing": "^10.28"
+        "php": ">=8.2",
+        "illuminate/support": "^11.0",
+        "illuminate/routing": "^11.0"
     },
     "require-dev": {
         "ext-dom": "*",
-        "phpunit/phpunit": "^10.4",
-        "orchestra/testbench": "^8.14",
-        "nunomaduro/collision": "^7.8",
-        "phpunit/php-code-coverage": "^10.1"
+        "phpunit/phpunit": "11.0.10",
+        "orchestra/testbench": "^9.0.0",
+        "nunomaduro/collision": "^8.0",
+        "phpunit/php-code-coverage": "^11.0.0"
     },
     "extra": {
         "laravel": {
