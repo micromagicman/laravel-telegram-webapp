@@ -25,6 +25,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The lifetime of the {@link https://core.telegram.org/bots/webapps#webappinitdata Telegram initData} auth_date parameter in seconds.
+    | The request to the server must be made within this interval, otherwise the data transmitted from Telegram
+    | will be considered invalid. The values of the parameter <= 0 imply that there is no verification of the lifetime
+    | of data from telegram and the auth_date parameter is not validated.
+    |--------------------------------------------------------------------------
+    */
+    'authDateLifetimeSeconds' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
     | HTTP error response format options
     |--------------------------------------------------------------------------
     */
