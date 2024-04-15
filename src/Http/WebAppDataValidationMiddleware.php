@@ -10,10 +10,9 @@ use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 /**
  * Middleware that provides a mechanism for validating Telegram MiniApp users
  */
-class WebAppDataValidationMiddleware
+readonly class WebAppDataValidationMiddleware
 {
-    public function __construct(
-        private readonly TelegramWebAppService $webAppService ) {}
+    public function __construct( private TelegramWebAppService $webAppService ) {}
 
     public function handle( Request $request, Closure $next )
     {

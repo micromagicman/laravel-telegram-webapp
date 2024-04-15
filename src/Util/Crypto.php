@@ -2,7 +2,10 @@
 
 namespace Micromagicman\TelegramWebApp\Util;
 
-class CryptoUtils
+/**
+ * Service with util methods for cryptography
+ */
+class Crypto
 {
     /**
      * SHA256 hashing algorithm name for {@link hash_hmac} function
@@ -13,7 +16,7 @@ class CryptoUtils
      * Generate a SHA256 hash value
      * @param bool $binary - When set to true, outputs raw binary data. false outputs lowercase hexits
      */
-    public static function hmacSHA256( string $plainText, string $key, bool $binary = false ): string
+    public function hmacSHA256( string $plainText, string $key, bool $binary = false ): string
     {
         return hash_hmac( self::SHA_256_ALGORITHM, $plainText, $key, $binary );
     }

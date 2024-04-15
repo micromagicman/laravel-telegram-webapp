@@ -5,7 +5,8 @@ namespace Micromagicman\TelegramWebApp\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
-use Micromagicman\TelegramWebApp\Util\CryptoUtils;
+use Micromagicman\TelegramWebApp\Util\Crypto;
+use Micromagicman\TelegramWebApp\Util\Time;
 
 /**
  * Telegram MiniApp service functions
@@ -23,14 +24,29 @@ class TelegramWebAppService
     private const USER_QUERY_PARAMETER_KEY = 'user';
 
     /**
+     * A name of auth_date query parameter from Telegram WebApp
+     */
+    private const AUTH_DATE_QUERY_PARAMETER_KEY = 'auth_date';
+
+    /**
      * A key for hashing a key that will be used to calculate the hash from the data received via Telegram MiniApp
      */
     private const SHA256_TOKEN_HASH_KEY = 'WebAppData';
 
+    /**
+     * Default {@link https://core.telegram.org/bots/webapps#webappinitdata Telegram initData} auth_date lifetime
+     * (seconds)
+     */
+    private const DEFAULT_AUTH_DATE_LIFETIME = 0;
+
+    public function __construct(
+        private readonly Crypto $crypto,
+        private readonly Time   $time ) {}
+
     public function abortWithError( array $errorMessageParams = [] ): void
     {
-        $errorMessage = config( 'telegram-webapp.error.message' );
-        $statusCode = config( 'telegram-webapp.error.status' );
+        $errorMessage = $this->config( 'error.message' );
+        $statusCode = $this->config( 'error.status' );
         abort( $statusCode, __( $errorMessage, $errorMessageParams ) );
     }
 
@@ -41,7 +57,7 @@ class TelegramWebAppService
     public function verifyInitData( ?Request $request = null ): bool
     {
         $queryParams = $request->query();
-        if ( !array_key_exists( self::HASH_QUERY_PARAMETER_KEY, $queryParams ) ) {
+        if ( !$this->telegramInitDataValid( $queryParams ) ) {
             return false;
         }
         $requestHash = $queryParams[ self::HASH_QUERY_PARAMETER_KEY ];
@@ -67,14 +83,22 @@ class TelegramWebAppService
     }
 
     /**
+     * Receive configuration value by the key with plugin prefix
+     */
+    public function config( string $key, mixed $defaultValue = null )
+    {
+        return config( "telegram-webapp.$key", $defaultValue );
+    }
+
+    /**
      * Verify integrity of the data received by comparing the received hash parameter with the hexadecimal
      * representation of the HMAC-SHA-256 signature of the data-check-string with the secret key, which is the
      * HMAC-SHA-256 signature of the bot's token with the constant string WebAppData used as a key.
      */
     private function createHashFromQueryString( array $queryParams ): string
     {
-        $telegramBotToken = config( 'telegram-webapp.botToken' );
-        $dataDigestKey = CryptoUtils::hmacSHA256( $telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
+        $telegramBotToken = $this->config( 'botToken' );
+        $dataDigestKey = $this->crypto->hmacSHA256( $telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
         $dataWithoutHash = array_filter(
             $queryParams,
             fn( $key ) => $key !== self::HASH_QUERY_PARAMETER_KEY,
@@ -89,6 +113,29 @@ class TelegramWebAppService
                 $dataWithoutHash
             )
         );
-        return CryptoUtils::hmacSHA256( $dataCheckString, $dataDigestKey );
+        return $this->crypto->hmacSHA256( $dataCheckString, $dataDigestKey );
+    }
+
+    /**
+     * Checking that {@link https://core.telegram.org/bots/webapps#webappinitdata Telegram initData} is valid
+     */
+    private function telegramInitDataValid( array $telegramInitData ): bool
+    {
+        return array_key_exists( self::USER_QUERY_PARAMETER_KEY, $telegramInitData )
+            && !$this->authDateExpired( $telegramInitData[ self::AUTH_DATE_QUERY_PARAMETER_KEY ] );
+    }
+
+    /**
+     * Checking that Telegram {@link https://core.telegram.org/bots/webapps#webappinitdata auth_date} parameter has expired
+     * The lifetime of {@link https://core.telegram.org/bots/webapps#webappinitdata Telegram initData}
+     * is set by the telegram-webapp.authDateLifetimeSeconds parameter
+     */
+    private function authDateExpired( int $authDate ): bool
+    {
+        $authDateLifetime = $this->config( 'authDateLifetimeSeconds', self::DEFAULT_AUTH_DATE_LIFETIME );
+        if ( $authDateLifetime <= self::DEFAULT_AUTH_DATE_LIFETIME ) {
+            return false;
+        }
+        return $this->time->expired( $authDate + $authDateLifetime );
     }
 }
