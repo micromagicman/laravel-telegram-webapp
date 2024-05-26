@@ -1,6 +1,6 @@
 <?php
 
-namespace Micromagicman\TelegramWebApp\Tests;
+namespace Micromagicman\TelegramWebApp\Tests\Service;
 
 use DOMDocument;
 use Illuminate\Foundation\Application;

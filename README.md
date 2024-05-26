@@ -70,3 +70,28 @@ Example:
     </div>
 @endsection
 ```
+
+## Telegram bot API
+
+### answerWebAppQuery
+
+Set the result of an interaction with a Web App and send a corresponding message on behalf of the user to the chat 
+from which the query originated. On success, an `Illuminate\Http\Client\Response` object is returned.
+
+#### Parameters
+
+`$result` - one of [InlineQueryResult](https://core.telegram.org/bots/api#inlinequeryresult) variations (php array)
+
+```php
+
+use Micromagicman\TelegramWebApp\Api\TelegramBotApi;
+
+private TelegramBotApi $botApi;
+
+$response = $botApi->answerWebpAppQuery([
+    'type' => 'document'
+    // ...
+    // one of InlineQueryResult variations
+    // ...
+]);
+```

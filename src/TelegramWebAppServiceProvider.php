@@ -4,10 +4,21 @@ namespace Micromagicman\TelegramWebApp;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Micromagicman\TelegramWebApp\Api\TelegramApi;
+use Micromagicman\TelegramWebApp\Api\TelegramBotApi;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
 
 class TelegramWebAppServiceProvider extends ServiceProvider
 {
+
+    /**
+     * Package singletons that should be registered.
+     *
+     * @var array
+     */
+    public $singletons = [
+        TelegramApi::class => TelegramBotApi::class
+    ];
 
     public function boot( Router $router ): void
     {

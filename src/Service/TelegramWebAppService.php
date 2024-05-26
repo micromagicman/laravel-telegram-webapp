@@ -45,9 +45,10 @@ class TelegramWebAppService
 
     public function abortWithError( array $errorMessageParams = [] ): void
     {
-        $errorMessage = $this->config( 'error.message' );
-        $statusCode = $this->config( 'error.status' );
-        abort( $statusCode, __( $errorMessage, $errorMessageParams ) );
+        abort(
+            webAppConfig( 'error.status' ),
+            __( webAppConfig( 'error.message' ), $errorMessageParams )
+        );
     }
 
     /**
@@ -83,22 +84,13 @@ class TelegramWebAppService
     }
 
     /**
-     * Receive configuration value by the key with plugin prefix
-     */
-    public function config( string $key, mixed $defaultValue = null )
-    {
-        return config( "telegram-webapp.$key", $defaultValue );
-    }
-
-    /**
      * Verify integrity of the data received by comparing the received hash parameter with the hexadecimal
      * representation of the HMAC-SHA-256 signature of the data-check-string with the secret key, which is the
      * HMAC-SHA-256 signature of the bot's token with the constant string WebAppData used as a key.
      */
     private function createHashFromQueryString( array $queryParams ): string
     {
-        $telegramBotToken = $this->config( 'botToken' );
-        $dataDigestKey = $this->crypto->hmacSHA256( $telegramBotToken, self::SHA256_TOKEN_HASH_KEY, true );
+        $dataDigestKey = $this->crypto->hmacSHA256( telegramToken(), self::SHA256_TOKEN_HASH_KEY, true );
         $dataWithoutHash = array_filter(
             $queryParams,
             fn( $key ) => $key !== self::HASH_QUERY_PARAMETER_KEY,
@@ -132,7 +124,7 @@ class TelegramWebAppService
      */
     private function authDateExpired( int $authDate ): bool
     {
-        $authDateLifetime = $this->config( 'authDateLifetimeSeconds', self::DEFAULT_AUTH_DATE_LIFETIME );
+        $authDateLifetime = webAppConfig( 'authDateLifetimeSeconds', self::DEFAULT_AUTH_DATE_LIFETIME );
         if ( $authDateLifetime <= self::DEFAULT_AUTH_DATE_LIFETIME ) {
             return false;
         }
