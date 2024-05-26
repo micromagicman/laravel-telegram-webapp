@@ -34,13 +34,14 @@ php artisan vendor:publish --provider="Micromagicman\TelegramWebApp\TelegramWebA
 
 All package configuration available in `config/telegram-webapp.php` file after `publish` command execution:
 
-| Config name            | Description                                                                  | Environment                               | Default value                                 |
-|------------------------|------------------------------------------------------------------------------|-------------------------------------------|-----------------------------------------------|
-| `enabled`              | Telegram MiniApp data validation switch                                      | `TELEGRAM_WEBAPP_DATA_VALIDATION_ENABLED` | `true`                                        |
-| `webAppScriptLocation` | Path to script (.js) which initializes Telegram MiniApp on your frontend app | -                                         | `https://telegram.org/js/telegram-web-app.js` |
-| `botToken`             | Your Telegram bot token                                                      | `TELEGRAM_BOT_TOKEN`                      | -                                             |
-| `error.status`         | HTTP status code when Telegram MiniApp data validation fails                 | -                                         | 403 (Forbidden)                               |
-| `error.message`        | HTTP status code when Telegram MiniApp data validation fails                 | -                                         | 403 (Forbidden)                               |
+| Config name               | Description                                                                                                                                                                                                                                                                                                                                                         | Environment                               | Default value                                 |
+|---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|-----------------------------------------------|
+| `enabled`                 | Telegram MiniApp data validation switch                                                                                                                                                                                                                                                                                                                             | `TELEGRAM_WEBAPP_DATA_VALIDATION_ENABLED` | `true`                                        |
+| `webAppScriptLocation`    | Path to script (.js) which initializes Telegram MiniApp on your frontend app                                                                                                                                                                                                                                                                                        | -                                         | `https://telegram.org/js/telegram-web-app.js` |
+| `botToken`                | Your Telegram bot token                                                                                                                                                                                                                                                                                                                                             | `TELEGRAM_BOT_TOKEN`                      | -                                             |
+| `error.status`            | HTTP status code when Telegram MiniApp data validation fails                                                                                                                                                                                                                                                                                                        | -                                         | 403 (Forbidden)                               |
+| `error.message`           | Error message returned when Telegram MiniApp data validation fails                                                                                                                                                                                                                                                                                                  | -                                         | 403 (Forbidden)                               |
+| `authDateLifetimeSeconds` | The lifetime of the Telegram initData auth_date parameter in seconds. The request to the server must be made within this interval, otherwise the data transmitted from Telegram will be considered invalid. The values of the parameter <= 0 imply that there is no verification of the lifetime of data from telegram and the auth_date parameter is not validated | -                                         | 0                                             |
 
 Example in code:
 
@@ -68,4 +69,29 @@ Example:
         // My spa content
     </div>
 @endsection
+```
+
+## Telegram bot API
+
+### answerWebAppQuery
+
+Set the result of an interaction with a Web App and send a corresponding message on behalf of the user to the chat 
+from which the query originated. On success, an `Illuminate\Http\Client\Response` object is returned.
+
+#### Parameters
+
+`$result` - one of [InlineQueryResult](https://core.telegram.org/bots/api#inlinequeryresult) variations (php array)
+
+```php
+
+use Micromagicman\TelegramWebApp\Api\TelegramBotApi;
+
+private TelegramBotApi $botApi;
+
+$response = $botApi->answerWebpAppQuery([
+    'type' => 'document'
+    // ...
+    // one of InlineQueryResult variations
+    // ...
+]);
 ```

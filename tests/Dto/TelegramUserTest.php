@@ -1,6 +1,6 @@
 <?php
 
-namespace Micromagicman\TelegramWebApp\Tests;
+namespace Micromagicman\TelegramWebApp\Tests\Dto;
 
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use PHPUnit\Framework\Attributes\Test;
