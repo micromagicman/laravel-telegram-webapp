@@ -28,8 +28,8 @@
     ],
     "require": {
         "php": ">=8.2",
-        "illuminate/support": "^11.0",
-        "illuminate/routing": "^11.0"
+        "illuminate/support": "^11.31.0",
+        "illuminate/routing": "^11.31.0"
     },
     "require-dev": {
         "ext-dom": "*",
