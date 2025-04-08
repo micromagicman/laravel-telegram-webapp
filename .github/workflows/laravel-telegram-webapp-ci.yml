@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.3'
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
       - name: Cache Composer packages
@@ -35,7 +35,7 @@ jobs:
         env:
           XDEBUG_MODE: coverage
         with:
-          version: '11.0.10'
+          version: '12.1.0'
           configuration: phpunit.xml
           php_extensions: xdebug
           args: tests --coverage-clover ./coverage.xml
