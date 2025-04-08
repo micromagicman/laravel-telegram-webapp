@@ -2,11 +2,14 @@
 
 namespace Micromagicman\TelegramWebApp\Service;
 
+use BadMethodCallException;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Util\Crypto;
 use Micromagicman\TelegramWebApp\Util\Time;
+use TelegramBot\Api\BotApi;
 
 /**
  * Telegram MiniApp service functions
@@ -16,32 +19,40 @@ class TelegramWebAppService
     /**
      * A name of hash query parameter from Telegram
      */
-    private const HASH_QUERY_PARAMETER_KEY = 'hash';
+    private const string HASH_QUERY_PARAMETER_KEY = 'hash';
 
     /**
      * A name of user query parameter from Telegram
      */
-    private const USER_QUERY_PARAMETER_KEY = 'user';
+    private const string USER_QUERY_PARAMETER_KEY = 'user';
 
     /**
      * A name of auth_date query parameter from Telegram WebApp
      */
-    private const AUTH_DATE_QUERY_PARAMETER_KEY = 'auth_date';
+    private const string AUTH_DATE_QUERY_PARAMETER_KEY = 'auth_date';
 
     /**
      * A key for hashing a key that will be used to calculate the hash from the data received via Telegram MiniApp
      */
-    private const SHA256_TOKEN_HASH_KEY = 'WebAppData';
+    private const string SHA256_TOKEN_HASH_KEY = 'WebAppData';
 
     /**
      * Default {@link https://core.telegram.org/bots/webapps#webappinitdata Telegram initData} auth_date lifetime
      * (seconds)
      */
-    private const DEFAULT_AUTH_DATE_LIFETIME = 0;
+    private const int DEFAULT_AUTH_DATE_LIFETIME = 0;
 
+    protected BotApi $telegramBotApi;
+
+    /**
+     * @throws Exception If the Telegram Bot API service cannot be created.
+     */
     public function __construct(
         private readonly Crypto $crypto,
-        private readonly Time   $time ) {}
+        private readonly Time   $time )
+    {
+        $this->telegramBotApi = new BotApi( telegramToken() );
+    }
 
     public function abortWithError( array $errorMessageParams = [] ): void
     {
@@ -81,6 +92,17 @@ class TelegramWebAppService
             return null;
         }
         return new TelegramUser( $telegramUserData );
+    }
+
+    /**
+     * Proxy for {@link BotApi telegram native bot api} methods.
+     */
+    public function __call( $method, $arguments )
+    {
+        if ( method_exists( $this->telegramBotApi, $method ) ) {
+            return $this->telegramBotApi->{$method}( ...$arguments );
+        }
+        throw new BadMethodCallException( "Method $method does not exists in Telegram bot api" );
     }
 
     /**
