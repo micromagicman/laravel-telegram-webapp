@@ -4,7 +4,7 @@ namespace Micromagicman\TelegramWebApp\Tests\Api;
 
 use Micromagicman\TelegramWebApp\Api\TelegramApiMethod;
 use Micromagicman\TelegramWebApp\Api\WebApp\AnswerWebAppQuery;
-use Monolog\Test\TestCase;
+use PHPUnit\Framework\TestCase;
 
 class TelegramApiMethodTest extends TestCase
 {

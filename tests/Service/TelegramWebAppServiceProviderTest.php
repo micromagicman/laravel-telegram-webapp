@@ -2,16 +2,22 @@
 
 namespace Micromagicman\TelegramWebApp\Tests\Service;
 
+use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
+use Micromagicman\TelegramWebApp\Tests\Fixtures\StubBotApi;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
+use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 use Micromagicman\TelegramWebApp\Util\Crypto;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Exception;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use ReflectionClass;
 
 class TelegramWebAppServiceProviderTest extends TestCase
 {
@@ -154,6 +160,53 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $authDate = time() - 61;
         $response = $this->post( "/api/telegram-webapp?query_id=AAE0m7oLAAAAADSbugtKyT4p&user={\"id\":111111111,\"first_name\":\"Evgen\",\"last_name\":\"Evgen\",\"username\":\"micromagicman\",\"language_code\":\"xx\",\"is_premium\":true,\"allows_write_to_pm\":true}&auth_date=$authDate&hash=1e22c77f7ed7c91699d93eaf3925dc7e84a3ebb695642bb6a7664e34df63cc32" );
         $this->assertEquals( 403, $response->getStatusCode() );
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
+    #[Test]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
+    public function testTelegramBotApiProxyWithExistingMethod()
+    {
+        $mockApi = $this->getMockBuilder( StubBotApi::class )
+            ->disableOriginalConstructor()
+            ->onlyMethods( [ 'getMe' ] )
+            ->getMock();
+        $mockApi->expects( $this->once() )
+            ->method( 'getMe' )
+            ->willReturn( [ 'ok' => true ] );
+        $service = $this->app->get( TelegramWebAppService::class );
+        $reflection = new ReflectionClass( TelegramWebAppService::class );
+        $property = $reflection->getProperty( 'telegramBotApi' );
+        $property->setAccessible( true );
+        $property->setValue( $service, $mockApi );
+        $result = $service->getMe();
+        $this->assertEquals( [ 'ok' => true ], $result );
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
+    #[Test]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
+    public function testTelegramBotApiProxyWithNotExistingMethod()
+    {
+        $mockApi = $this->createMock( StubBotApi::class );
+        $service = $this->app->get( TelegramWebAppService::class );
+        $reflection = new ReflectionClass( TelegramWebAppService::class );
+        $property = $reflection->getProperty( 'telegramBotApi' );
+        $property->setAccessible( true );
+        $property->setValue( $service, $mockApi );
+        $this->assertThrows(
+            fn() => $service->notExists(),
+            BadMethodCallException::class,
+            "Method notExists does not exists in Telegram bot api"
+        );
     }
 
     private function loadDOM( string $htmlContent ): DOMDocument
