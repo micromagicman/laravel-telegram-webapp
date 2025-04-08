@@ -13,6 +13,7 @@ about the Telegram user who sent the request
 |---------|---------------------------------------|
 | 10.x    | 1.x.x                                 |
 | 11.x    | 2.x.x                                 |
+| 12.x    | 3.x.x                                 |
 
 ## Install
 
