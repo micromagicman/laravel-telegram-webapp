@@ -5,7 +5,11 @@ namespace Micromagicman\TelegramWebApp\Api;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Micromagicman\TelegramWebApp\Api\WebApp\AnswerWebAppQuery;
+use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 
+/**
+ * @deprecated Use {@link TelegramWebAppService}.
+ */
 class TelegramBotApi implements TelegramApi
 {
 

@@ -16,8 +16,7 @@ readonly class WebAppDataValidationMiddleware
 
     public function handle( Request $request, Closure $next )
     {
-        $enabled = webAppConfig( 'enabled' );
-        if ( $enabled && !$this->webAppService->verifyInitData( $request ) ) {
+        if ( !$this->webAppService->verifyInitData( $request ) ) {
             Log::error(
                 'Telegram WebApp User is invalid!',
                 [ $request->query() ]

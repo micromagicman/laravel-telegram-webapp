@@ -9,7 +9,8 @@ use Micromagicman\TelegramWebApp\Api\TelegramApiMethod;
  * to the chat from which the query originated.
  *
  * @see {@link https://core.telegram.org/bots/api#answerwebappquery}
- */
+ * @deprecated Use {@link TelegramWebAppService}.
+*/
 class AnswerWebAppQuery extends TelegramApiMethod
 {
 
