@@ -60,6 +60,9 @@ class TelegramWebAppService
      */
     public function verifyInitData( ?Request $request = null ): bool
     {
+        if ( !webAppConfig( 'enabled' ) ) {
+            return true;
+        }
         $queryParams = $request->query();
         if ( !$this->telegramInitDataValid( $queryParams ) ) {
             return false;

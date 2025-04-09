@@ -5,9 +5,11 @@ namespace Micromagicman\TelegramWebApp\Tests\Service;
 use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Artisan;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
+use Micromagicman\TelegramWebApp\TelegramWebAppServiceProvider;
 use Micromagicman\TelegramWebApp\Tests\Fixtures\StubBotApi;
 use Micromagicman\TelegramWebApp\Util\Crypto;
 use Micromagicman\TelegramWebApp\Util\Time;
@@ -51,6 +53,14 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function testPublishConfigInConsoleContext()
+    {
+        Artisan::call( 'vendor:publish', [ '--provider' => TelegramWebAppServiceProvider::class ] );
+        $publishedFilePath = config_path( 'telegram-webapp.php' );
+        $this->assertTrue( file_exists( $publishedFilePath ), "Config file was not published." );
+    }
+
+    #[Test]
     public function testWebAppPageLoadsCorrectly()
     {
         $webAppPageResponse = $this->get( '/' );
@@ -73,9 +83,9 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $webAppScript = $dom->getElementById( "telegram-webapp-script" );
         $pageContentBlock = $dom->getElementById( "app-content" );
 
+        $this->assertEquals( 200, $webAppPageResponse->getStatusCode() );
         $this->assertNotNull( $pageContentBlock );
         $this->assertNull( $webAppScript );
-        $this->assertEquals( 200, $webAppPageResponse->getStatusCode() );
     }
 
     #[Test]

@@ -23,18 +23,28 @@ class TelegramWebAppServiceProvider extends ServiceProvider
 
     public function boot( Router $router ): void
     {
-        $this->publishes( [
-            __DIR__ . '/../config/telegram-webapp.php' => config_path( 'telegram-webapp.php' )
-        ] );
+        if ( $this->app->runningInConsole() ) {
+            $this->publishes( [
+                __DIR__ . '/../config/telegram-webapp.php' => config_path( 'telegram-webapp.php' )
+            ] );
+        }
         $this->loadViewsFrom( __DIR__ . '/../resources/views', 'telegram-webapp' );
         $router->aliasMiddleware( 'telegram-webapp', WebAppDataValidationMiddleware::class );
     }
 
     public function register(): void
     {
+        $this->mergeConfigFrom( __DIR__ . '/../config/telegram-webapp.php', 'telegram-webapp' );
         $this->app->singleton( BotApi::class, function () {
             return new BotApi( telegramToken() );
         } );
-        $this->mergeConfigFrom( __DIR__ . '/../config/telegram-webapp.php', 'telegram-webapp' );
+    }
+
+    /**
+     *
+     */
+    private function serviceEnabled(): bool
+    {
+        return webAppConfig( 'enabled' );
     }
 }
