@@ -5,7 +5,8 @@ namespace Micromagicman\TelegramWebApp\Api;
 use UnexpectedValueException;
 
 /**
- * Abstract Telegram API method
+ * Abstract Telegram API method.
+ * @deprecated in favor {@link TelegramWebAppService TelegramBot\Api proxy}.
  */
 abstract class TelegramApiMethod
 {

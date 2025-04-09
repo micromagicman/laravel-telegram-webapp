@@ -23,7 +23,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
 {
     use WithWorkbench;
 
-    protected function usesDisabledMode( Application $app ): void
+    protected function useDisabledMode( Application $app ): void
     {
         $app[ 'config' ]->set( 'telegram-webapp.enabled', false );
     }
@@ -65,7 +65,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
-    #[DefineEnvironment( 'usesDisabledMode' )]
+    #[DefineEnvironment( 'useDisabledMode' )]
     public function testWebAppPageLoadsCorrectlyInDisabledMode()
     {
         $webAppPageResponse = $this->get( '/' );
@@ -79,7 +79,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
-    #[DefineEnvironment( 'usesDisabledMode' )]
+    #[DefineEnvironment( 'useDisabledMode' )]
     public function testApiRequestWithDisabledMode()
     {
         $response = $this->post( '/api/telegram-webapp' );

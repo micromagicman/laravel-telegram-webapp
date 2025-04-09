@@ -9,6 +9,7 @@ namespace Micromagicman\TelegramWebApp\Api;
  *  <li>{@link https://core.telegram.org/#getting-started Telegram API}</li>
  *  <li>{@link https://core.telegram.org/bots/api Telegram Telegram Bot API}</li>
  * </ul>
+ * @deprecated Use {@link TelegramWebAppService}.
  */
 interface TelegramApi
 {
