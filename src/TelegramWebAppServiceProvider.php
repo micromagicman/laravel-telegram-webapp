@@ -17,9 +17,7 @@ class TelegramWebAppServiceProvider extends ServiceProvider
      *
      * @var array
      */
-    public $singletons = [
-        TelegramApi::class => TelegramBotApi::class
-    ];
+    public $singletons = [];
 
     public function boot( Router $router ): void
     {
