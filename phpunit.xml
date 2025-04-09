@@ -7,7 +7,7 @@
          requireCoverageMetadata="false" beStrictAboutCoverageMetadata="false">
     <testsuites>
         <testsuite name="main">
-            <directory suffix=".php">tests</directory>
+            <directory suffix="Test.php">tests</directory>
         </testsuite>
     </testsuites>
     <source>

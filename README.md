@@ -72,27 +72,51 @@ Example:
 @endsection
 ```
 
-## Telegram bot API
+## Integration with `TelegramBot\Api\BotApi`
 
-### answerWebAppQuery
+Our service integrates with `TelegramBot\Api\BotApi`, allowing you to access all of the methods provided by the Telegram Bot API. This integration is available either through a **Facade** or directly through the service.
 
-Set the result of an interaction with a Web App and send a corresponding message on behalf of the user to the chat 
-from which the query originated. On success, an `Illuminate\Http\Client\Response` object is returned.
+You can find the repository for `TelegramBot\Api\BotApi` [here](https://github.com/TelegramBot/Api).
 
-#### Parameters
+### Using the Facade
 
-`$result` - one of [InlineQueryResult](https://core.telegram.org/bots/api#inlinequeryresult) variations (php array)
+To use the Telegram Bot API methods, you can leverage the **TelegramWebAppFacade** facade. This provides a simple and convenient way to interact with the Telegram Bot API.
+
+Example usage with the Facade:
 
 ```php
+use Micromagicman\TelegramWebApp\Facades\TelegramWebApp;
 
-use Micromagicman\TelegramWebApp\Api\TelegramBotApi;
-
-private TelegramBotApi $botApi;
-
-$response = $botApi->answerWebpAppQuery([
-    'type' => 'document'
-    // ...
-    // one of InlineQueryResult variations
-    // ...
-]);
+$response = TelegramWebApp::getMe();
 ```
+
+This allows you to call methods like `getMe()`, `sendMessage()`, `getUpdates()`, and any other method from the `BotApi` class directly through the facade.
+
+### Using the Service Directly
+
+You can also interact with the Telegram Bot API directly through the service. Inject the `TelegramWebAppService` into your components, and call the Bot API methods via the service instance.
+
+Example usage in a controller:
+
+```php
+use Micromagicman\TelegramWebApp\Services\TelegramWebAppService;
+
+class MyController extends Controller
+{
+    protected $telegram;
+
+    public function __construct(TelegramWebAppService $telegram)
+    {
+        $this->telegram = $telegram;
+    }
+
+    public function getBotInfo()
+    {
+        $response = $this->telegram->getMe();
+        return response()->json($response);
+    }
+}
+```
+
+Both the facade and the service offer full access to the `BotApi` class methods, 
+allowing you to work seamlessly with the Telegram Bot API in your Laravel application.

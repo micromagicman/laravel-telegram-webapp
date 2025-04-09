@@ -2,22 +2,30 @@
 
 namespace Micromagicman\TelegramWebApp\Tests\Service;
 
+use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Artisan;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
+use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
+use Micromagicman\TelegramWebApp\TelegramWebAppServiceProvider;
+use Micromagicman\TelegramWebApp\Tests\Fixtures\StubBotApi;
 use Micromagicman\TelegramWebApp\Util\Crypto;
+use Micromagicman\TelegramWebApp\Util\Time;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Exception;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class TelegramWebAppServiceProviderTest extends TestCase
 {
     use WithWorkbench;
 
-    protected function usesDisabledMode( Application $app ): void
+    protected function useDisabledMode( Application $app ): void
     {
         $app[ 'config' ]->set( 'telegram-webapp.enabled', false );
     }
@@ -45,6 +53,14 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function testPublishConfigInConsoleContext()
+    {
+        Artisan::call( 'vendor:publish', [ '--provider' => TelegramWebAppServiceProvider::class ] );
+        $publishedFilePath = config_path( 'telegram-webapp.php' );
+        $this->assertTrue( file_exists( $publishedFilePath ), "Config file was not published." );
+    }
+
+    #[Test]
     public function testWebAppPageLoadsCorrectly()
     {
         $webAppPageResponse = $this->get( '/' );
@@ -59,7 +75,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
-    #[DefineEnvironment( 'usesDisabledMode' )]
+    #[DefineEnvironment( 'useDisabledMode' )]
     public function testWebAppPageLoadsCorrectlyInDisabledMode()
     {
         $webAppPageResponse = $this->get( '/' );
@@ -67,13 +83,14 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $webAppScript = $dom->getElementById( "telegram-webapp-script" );
         $pageContentBlock = $dom->getElementById( "app-content" );
 
+        $this->assertEquals( 200, $webAppPageResponse->getStatusCode() );
         $this->assertNotNull( $pageContentBlock );
         $this->assertNull( $webAppScript );
-        $this->assertEquals( 200, $webAppPageResponse->getStatusCode() );
     }
 
     #[Test]
-    #[DefineEnvironment( 'usesDisabledMode' )]
+    #[DefineEnvironment( 'useDisabledMode' )]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
     public function testApiRequestWithDisabledMode()
     {
         $response = $this->post( '/api/telegram-webapp' );
@@ -154,6 +171,45 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $authDate = time() - 61;
         $response = $this->post( "/api/telegram-webapp?query_id=AAE0m7oLAAAAADSbugtKyT4p&user={\"id\":111111111,\"first_name\":\"Evgen\",\"last_name\":\"Evgen\",\"username\":\"micromagicman\",\"language_code\":\"xx\",\"is_premium\":true,\"allows_write_to_pm\":true}&auth_date=$authDate&hash=1e22c77f7ed7c91699d93eaf3925dc7e84a3ebb695642bb6a7664e34df63cc32" );
         $this->assertEquals( 403, $response->getStatusCode() );
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
+    #[Test]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
+    public function testTelegramBotApiProxyWithExistingMethod()
+    {
+        $mockApi = $this->getMockBuilder( StubBotApi::class )
+            ->disableOriginalConstructor()
+            ->onlyMethods( [ 'getMe' ] )
+            ->getMock();
+        $mockApi->expects( $this->once() )
+            ->method( 'getMe' )
+            ->willReturn( [ 'ok' => true ] );
+        $service = new TelegramWebAppService( $mockApi, new Crypto(), new Time() );
+        $result = $service->getMe();
+        $this->assertEquals( [ 'ok' => true ], $result );
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
+    #[Test]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
+    public function testTelegramBotApiProxyWithNotExistingMethod()
+    {
+        $mockApi = $this->createMock( StubBotApi::class );
+        $service = new TelegramWebAppService( $mockApi, new Crypto(), new Time() );
+        $this->assertThrows(
+            fn() => $service->notExists(),
+            BadMethodCallException::class,
+            "Method notExists does not exists in Telegram bot api"
+        );
     }
 
     private function loadDOM( string $htmlContent ): DOMDocument
