@@ -90,6 +90,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
 
     #[Test]
     #[DefineEnvironment( 'useDisabledMode' )]
+    #[DefineEnvironment( 'useTestTelegramBotToken' )]
     public function testApiRequestWithDisabledMode()
     {
         $response = $this->post( '/api/telegram-webapp' );
