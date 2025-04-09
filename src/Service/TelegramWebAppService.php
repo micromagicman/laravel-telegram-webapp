@@ -3,7 +3,6 @@
 namespace Micromagicman\TelegramWebApp\Service;
 
 use BadMethodCallException;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
@@ -42,17 +41,10 @@ class TelegramWebAppService
      */
     private const int DEFAULT_AUTH_DATE_LIFETIME = 0;
 
-    protected BotApi $telegramBotApi;
-
-    /**
-     * @throws Exception If the Telegram Bot API service cannot be created.
-     */
     public function __construct(
+        private readonly BotApi $telegramBotApi,
         private readonly Crypto $crypto,
-        private readonly Time   $time )
-    {
-        $this->telegramBotApi = new BotApi( telegramToken() );
-    }
+        private readonly Time   $time ) {}
 
     public function abortWithError( array $errorMessageParams = [] ): void
     {

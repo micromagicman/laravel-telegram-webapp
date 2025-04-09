@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Micromagicman\TelegramWebApp\Api\TelegramApi;
 use Micromagicman\TelegramWebApp\Api\TelegramBotApi;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
+use TelegramBot\Api\BotApi;
 
 class TelegramWebAppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,9 @@ class TelegramWebAppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        $this->app->singleton( BotApi::class, function () {
+            return new BotApi( telegramToken() );
+        } );
         $this->mergeConfigFrom( __DIR__ . '/../config/telegram-webapp.php', 'telegram-webapp' );
     }
 }

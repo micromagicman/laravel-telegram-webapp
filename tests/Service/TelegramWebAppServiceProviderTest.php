@@ -5,11 +5,12 @@ namespace Micromagicman\TelegramWebApp\Tests\Service;
 use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
-use Micromagicman\TelegramWebApp\Tests\Fixtures\StubBotApi;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
+use Micromagicman\TelegramWebApp\Tests\Fixtures\StubBotApi;
 use Micromagicman\TelegramWebApp\Util\Crypto;
+use Micromagicman\TelegramWebApp\Util\Time;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase;
@@ -17,7 +18,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Exception;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use ReflectionClass;
 
 class TelegramWebAppServiceProviderTest extends TestCase
 {
@@ -178,11 +178,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $mockApi->expects( $this->once() )
             ->method( 'getMe' )
             ->willReturn( [ 'ok' => true ] );
-        $service = $this->app->get( TelegramWebAppService::class );
-        $reflection = new ReflectionClass( TelegramWebAppService::class );
-        $property = $reflection->getProperty( 'telegramBotApi' );
-        $property->setAccessible( true );
-        $property->setValue( $service, $mockApi );
+        $service = new TelegramWebAppService( $mockApi, new Crypto(), new Time() );
         $result = $service->getMe();
         $this->assertEquals( [ 'ok' => true ], $result );
     }
@@ -197,11 +193,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
     public function testTelegramBotApiProxyWithNotExistingMethod()
     {
         $mockApi = $this->createMock( StubBotApi::class );
-        $service = $this->app->get( TelegramWebAppService::class );
-        $reflection = new ReflectionClass( TelegramWebAppService::class );
-        $property = $reflection->getProperty( 'telegramBotApi' );
-        $property->setAccessible( true );
-        $property->setValue( $service, $mockApi );
+        $service = new TelegramWebAppService( $mockApi, new Crypto(), new Time() );
         $this->assertThrows(
             fn() => $service->notExists(),
             BadMethodCallException::class,
