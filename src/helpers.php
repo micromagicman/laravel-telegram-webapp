@@ -1,6 +1,7 @@
 <?php
 
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
+use Micromagicman\TelegramWebApp\Dto\TelegramWebAppData;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 
 if (! function_exists('telegramWebApp')) {
@@ -22,6 +23,17 @@ if (! function_exists('telegramUser')) {
     function telegramUser(): TelegramUser
     {
         return telegramWebApp()->getWebAppUser();
+    }
+}
+
+if (! function_exists('telegramWebAppData')) {
+
+    /**
+     * Get the full Telegram MiniApp initData
+     */
+    function telegramWebAppData(): TelegramWebAppData
+    {
+        return telegramWebApp()->getWebAppData();
     }
 }
 

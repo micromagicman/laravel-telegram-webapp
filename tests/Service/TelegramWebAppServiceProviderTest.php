@@ -5,6 +5,7 @@ namespace Micromagicman\TelegramWebApp\Tests\Service;
 use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
@@ -210,6 +211,38 @@ class TelegramWebAppServiceProviderTest extends TestCase
             BadMethodCallException::class,
             'Method notExists does not exists in Telegram bot api'
         );
+    }
+
+    #[Test]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_get_web_app_data_maps_all_fields()
+    {
+        $request = Request::create('/api/telegram-webapp', 'GET', [
+            'query_id' => 'AAE0m7oLAAAAADSbugtKyT4p',
+            'user' => json_encode(['id' => 111111111, 'first_name' => 'Evgen']),
+            'receiver' => json_encode(['id' => 222222222, 'first_name' => 'Other']),
+            'chat' => json_encode(['id' => 333333333, 'type' => 'group', 'title' => 'Test']),
+            'chat_type' => 'group',
+            'chat_instance' => '444444444',
+            'start_param' => 'ref123',
+            'can_send_after' => '1698815000',
+            'auth_date' => '1698814911',
+            'signature' => 'abc123',
+        ]);
+
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $data = $service->getWebAppData($request);
+
+        $this->assertSame('AAE0m7oLAAAAADSbugtKyT4p', $data->getQueryId());
+        $this->assertSame(111111111, $data->getUser()->getId());
+        $this->assertSame(222222222, $data->getReceiver()->getId());
+        $this->assertSame(333333333, $data->getChat()->getId());
+        $this->assertSame('group', $data->getChatType());
+        $this->assertSame('444444444', $data->getChatInstance());
+        $this->assertSame('ref123', $data->getStartParam());
+        $this->assertSame(1698815000, $data->getCanSendAfter());
+        $this->assertSame(1698814911, $data->getAuthDate());
+        $this->assertSame('abc123', $data->getSignature());
     }
 
     private function loadDOM(string $htmlContent): DOMDocument
