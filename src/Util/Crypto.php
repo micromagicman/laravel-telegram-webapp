@@ -14,10 +14,11 @@ class Crypto
 
     /**
      * Generate a SHA256 hash value
-     * @param bool $binary - When set to true, outputs raw binary data. false outputs lowercase hexits
+     *
+     * @param  bool  $binary  - When set to true, outputs raw binary data. false outputs lowercase hexits
      */
-    public function hmacSHA256( string $plainText, string $key, bool $binary = false ): string
+    public function hmacSHA256(string $plainText, string $key, bool $binary = false): string
     {
-        return hash_hmac( self::SHA_256_ALGORITHM, $plainText, $key, $binary );
+        return hash_hmac(self::SHA_256_ALGORITHM, $plainText, $key, $binary);
     }
 }

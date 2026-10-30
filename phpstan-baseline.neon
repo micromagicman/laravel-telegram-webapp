@@ -1,0 +1,25 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Micromagicman\\TelegramWebApp\\Service\\TelegramWebAppService\:\:authDateExpired\(\) should return bool but returns int\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/TelegramWebAppService.php
+
+		-
+			message: '#^Parameter \#2 \$associative of function json_decode expects bool\|null, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TelegramWebAppService.php
+
+		-
+			message: '#^Method Micromagicman\\TelegramWebApp\\TelegramWebAppServiceProvider\:\:serviceEnabled\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/TelegramWebAppServiceProvider.php
+
+		-
+			message: '#^Method Micromagicman\\TelegramWebApp\\Util\\Time\:\:expired\(\) should return int but returns bool\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Util/Time.php

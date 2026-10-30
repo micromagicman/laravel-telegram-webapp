@@ -10,12 +10,11 @@ use ReflectionException;
 
 class TelegramUserTest extends TestCase
 {
-
     /**
      * @throws ReflectionException - if getter is absent in {@link TelegramUser}
      */
     #[Test]
-    public function testUserDtoHasGetterOnEachField()
+    public function test_user_dto_has_getter_on_each_field()
     {
         $testUserData = [
             'id' => 111111111,
@@ -26,27 +25,27 @@ class TelegramUserTest extends TestCase
             'is_premium' => true,
             'allows_write_to_pm' => true,
         ];
-        $testUser = new TelegramUser( $testUserData );
+        $testUser = new TelegramUser($testUserData);
 
-        $reflection = new ReflectionClass( TelegramUser::class );
-        foreach ( $reflection->getProperties() as $property ) {
-            if ( !$property->isStatic() ) {
+        $reflection = new ReflectionClass(TelegramUser::class);
+        foreach ($reflection->getProperties() as $property) {
+            if (! $property->isStatic()) {
                 $propertyType = $property->getType();
                 $propertyName = $property->getName();
-                $expectedValue = $testUserData[ $propertyName ];
-                $methodPrefix = 'bool' === $propertyType->getName() ? 'is' : 'get';
-                $propertyCamelCase = $this->snakeCaseToCamelCase( mb_strtolower( $property->getName() ) );
-                $methodName = str_starts_with( $propertyCamelCase, 'is' )
+                $expectedValue = $testUserData[$propertyName];
+                $methodPrefix = $propertyType->getName() === 'bool' ? 'is' : 'get';
+                $propertyCamelCase = $this->snakeCaseToCamelCase(mb_strtolower($property->getName()));
+                $methodName = str_starts_with($propertyCamelCase, 'is')
                     ? $propertyCamelCase
-                    : $methodPrefix . ucfirst( $propertyCamelCase );
-                $method = $reflection->getMethod( $methodName );
-                $this->assertEquals( $expectedValue, $method->invoke( $testUser ) );
+                    : $methodPrefix.ucfirst($propertyCamelCase);
+                $method = $reflection->getMethod($methodName);
+                $this->assertEquals($expectedValue, $method->invoke($testUser));
             }
         }
     }
 
-    private function snakeCaseToCamelCase( string $source ): string
+    private function snakeCaseToCamelCase(string $source): string
     {
-        return lcfirst( str_replace( ' ', '', ucwords( str_replace( '_', ' ', $source ) ) ) );
+        return lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $source))));
     }
 }

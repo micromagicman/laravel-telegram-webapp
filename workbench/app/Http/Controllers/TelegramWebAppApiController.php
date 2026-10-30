@@ -7,11 +7,10 @@ use Illuminate\Routing\Controller;
 
 class TelegramWebAppApiController extends Controller
 {
-
     public function process(): JsonResponse
     {
-        return response()->json( [
-            'message' => 'OK'
-        ] );
+        return response()->json([
+            'message' => 'OK',
+        ]);
     }
 }

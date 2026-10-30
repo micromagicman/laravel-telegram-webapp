@@ -7,7 +7,7 @@ return [
     | Telegram MiniApp data validation switch
     |--------------------------------------------------------------------------
     */
-    'enabled' => (bool)env( 'TELEGRAM_WEBAPP_DATA_VALIDATION_ENABLED', true ),
+    'enabled' => (bool) env('TELEGRAM_WEBAPP_DATA_VALIDATION_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -21,7 +21,7 @@ return [
     | Your Telegram bot token
     |--------------------------------------------------------------------------
     */
-    'botToken' => env( 'TELEGRAM_BOT_TOKEN', '' ),
+    'botToken' => env('TELEGRAM_BOT_TOKEN', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -43,6 +43,6 @@ return [
         'status' => 403,
         // Error message when Telegram MiniApp data validation fails
         // May contain placeholders for parameterizing the message
-        'message' => 'Telegram WebApp data is not valid'
-    ]
+        'message' => 'Telegram WebApp data is not valid',
+    ],
 ];

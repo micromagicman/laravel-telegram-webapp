@@ -26,18 +26,25 @@
             "email": "evgen@micromagicman.ru"
         }
     ],
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        }
+    },
     "require": {
         "php": ">=8.3",
-        "illuminate/support": "^12.0",
-        "illuminate/routing": "^12.0",
-        "telegram-bot/api": "^2.5"
+        "illuminate/support": "12.70.2",
+        "illuminate/routing": "12.70.2",
+        "telegram-bot/api": "2.5.0"
     },
     "require-dev": {
         "ext-dom": "*",
-        "phpunit/phpunit": "^12.0",
-        "orchestra/testbench": "^10.0.0",
-        "nunomaduro/collision": "^8.0",
-        "phpunit/php-code-coverage": "^12.0"
+        "phpunit/phpunit": "12.5.42",
+        "orchestra/testbench": "10.12.0",
+        "nunomaduro/collision": "8.9.5",
+        "phpunit/php-code-coverage": "12.5.8",
+        "laravel/pint": "1.32.1",
+        "larastan/larastan": "3.13.2"
     },
     "extra": {
         "laravel": {
@@ -51,6 +58,8 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit",
+        "lint": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=1G",
         "post-autoload-dump": [
             "@clear",
             "@prepare"
