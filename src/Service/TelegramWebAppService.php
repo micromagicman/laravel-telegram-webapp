@@ -82,7 +82,7 @@ class TelegramWebAppService
         if (! array_key_exists(self::USER_QUERY_PARAMETER_KEY, $requestQuery)) {
             return null;
         }
-        $telegramUserData = json_decode($requestQuery[self::USER_QUERY_PARAMETER_KEY], JSON_OBJECT_AS_ARRAY);
+        $telegramUserData = json_decode($requestQuery[self::USER_QUERY_PARAMETER_KEY], true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::error('Error parsing Telegram WebApp user data from json', [$requestQuery]);
 
