@@ -203,7 +203,7 @@ class TelegramWebAppServiceProviderTest extends TestCase
     #[DefineEnvironment('useTestTelegramBotToken')]
     public function test_telegram_bot_api_proxy_with_not_existing_method()
     {
-        $mockApi = $this->createMock(StubBotApi::class);
+        $mockApi = $this->createStub(StubBotApi::class);
         $service = new TelegramWebAppService($mockApi, new Crypto, new Time);
         $this->assertThrows(
             fn () => $service->notExists(),
