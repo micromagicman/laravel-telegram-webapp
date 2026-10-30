@@ -5,6 +5,7 @@ namespace Micromagicman\TelegramWebApp;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
+use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 use TelegramBot\Api\BotApi;
 
 class TelegramWebAppServiceProvider extends ServiceProvider
@@ -33,10 +34,6 @@ class TelegramWebAppServiceProvider extends ServiceProvider
         $this->app->singleton(BotApi::class, function () {
             return new BotApi(telegramToken());
         });
-    }
-
-    private function serviceEnabled(): bool
-    {
-        return webAppConfig('enabled');
+        $this->app->singleton(TelegramWebAppService::class);
     }
 }
