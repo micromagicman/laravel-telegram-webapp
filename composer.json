@@ -26,6 +26,11 @@
             "email": "evgen@micromagicman.ru"
         }
     ],
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        }
+    },
     "require": {
         "php": ">=8.3",
         "illuminate/support": "^12.0",
