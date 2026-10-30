@@ -13,10 +13,8 @@ use Workbench\App\Http\Controllers\TelegramWebAppApiController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::prefix( '/api' )
-    ->middleware( 'telegram-webapp' )
-    ->group( function () {
-        Route::post( '/telegram-webapp', [ TelegramWebAppApiController::class, 'process' ] );
-    } );
-
-
+Route::prefix('/api')
+    ->middleware('telegram-webapp')
+    ->group(function () {
+        Route::post('/telegram-webapp', [TelegramWebAppApiController::class, 'process']);
+    });

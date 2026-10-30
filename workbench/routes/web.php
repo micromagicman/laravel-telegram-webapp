@@ -14,4 +14,4 @@ use Workbench\App\Http\Controllers\TelegramWebAppPageController;
 |
 */
 
-Route::get( '/', [ TelegramWebAppPageController::class, 'index' ] );
+Route::get('/', [TelegramWebAppPageController::class, 'index']);
