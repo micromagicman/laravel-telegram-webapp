@@ -8,6 +8,7 @@ use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 
 /**
  * A static proxy to {@link TelegramWebAppService} service
+ *
  * @method static getWebAppUser( ?Request $request = null )
  */
 class TelegramFacade extends Facade

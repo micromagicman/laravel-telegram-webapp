@@ -12,17 +12,18 @@ use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
  */
 readonly class WebAppDataValidationMiddleware
 {
-    public function __construct( private TelegramWebAppService $webAppService ) {}
+    public function __construct(private TelegramWebAppService $webAppService) {}
 
-    public function handle( Request $request, Closure $next )
+    public function handle(Request $request, Closure $next)
     {
-        if ( !$this->webAppService->verifyInitData( $request ) ) {
+        if (! $this->webAppService->verifyInitData($request)) {
             Log::error(
                 'Telegram WebApp User is invalid!',
-                [ $request->query() ]
+                [$request->query()]
             );
             $this->webAppService->abortWithError();
         }
-        return $next( $request );
+
+        return $next($request);
     }
 }

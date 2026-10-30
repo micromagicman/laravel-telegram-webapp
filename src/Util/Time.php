@@ -7,7 +7,6 @@ namespace Micromagicman\TelegramWebApp\Util;
  */
 class Time
 {
-
     /**
      * Current {@link https://en.wikipedia.org/wiki/Unix_time unixtime} in seconds
      */
@@ -19,7 +18,7 @@ class Time
     /**
      * Checking that the provided unixtime has passed
      */
-    public function expired( int $unixTime ): int
+    public function expired(int $unixTime): int
     {
         return $unixTime < $this->now();
     }

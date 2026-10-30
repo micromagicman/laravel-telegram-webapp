@@ -7,9 +7,8 @@ use Illuminate\Routing\Controller;
 
 class TelegramWebAppPageController extends Controller
 {
-
     public function index(): View
     {
-        return view( 'main' );
+        return view('main');
     }
 }
