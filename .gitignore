@@ -1,5 +1,6 @@
 /.idea/
 /vendor/
 /.phpunit.cache/
+/build/
 
 TODO.txt
