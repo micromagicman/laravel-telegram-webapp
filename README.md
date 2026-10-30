@@ -120,3 +120,9 @@ class MyController extends Controller
 
 Both the facade and the service offer full access to the `BotApi` class methods, 
 allowing you to work seamlessly with the Telegram Bot API in your Laravel application.
+
+## Examples
+
+Ready-to-copy Mini App examples (authentication, forms, bot replies) live in the
+[`examples/`](examples) directory — see [`examples/README.md`](examples/README.md) for
+setup instructions and a walkthrough of how Mini App authentication works.
