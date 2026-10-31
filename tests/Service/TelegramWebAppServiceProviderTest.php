@@ -141,6 +141,24 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_telegram_user_is_injected_into_controller()
+    {
+        $response = $this->post('/api/telegram-webapp/user?query_id=AAE0m7oLAAAAADSbugtKyT4p&user={"id":111111111,"first_name":"Evgen","last_name":"Evgen","username":"micromagicman","language_code":"xx","is_premium":true,"allows_write_to_pm":true}&auth_date=1698814911&hash=dfe88aa8ef09d25f3de5a4c88dae3058ba480f3fece4dcfda376111617df11da');
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['id' => 111111111, 'first_name' => 'Evgen'], $response->json());
+    }
+
+    #[Test]
+    #[DefineEnvironment('useCryptoServiceMock')]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_telegram_user_injection_aborts_without_valid_user()
+    {
+        $response = $this->post('/api/telegram-webapp/user?query_id=AAE0m7oLAAAAADSbugtKyT4p&user=NOT_JSON&auth_date=1698814911&hash=1e22c77f7ed7c91699d93eaf3925dc7e84a3ebb695642bb6a7664e34df63cc32');
+        $this->assertEquals(config('telegram-webapp.error.status'), $response->getStatusCode());
+    }
+
+    #[Test]
     #[DefineEnvironment('useCryptoServiceMock')]
     #[DefineEnvironment('useTestTelegramBotToken')]
     #[DefineEnvironment('useAuthDateLifetimeMinute')]

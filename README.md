@@ -121,6 +121,30 @@ class MyController extends Controller
 Both the facade and the service offer full access to the `BotApi` class methods, 
 allowing you to work seamlessly with the Telegram Bot API in your Laravel application.
 
+## Injecting the Telegram user
+
+When a route is protected by the `telegram-webapp` middleware, the validated user is
+stored on the request and can be injected directly into a controller method — in the
+same style as Laravel's route-model binding:
+
+```php
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
+
+class MyController extends Controller
+{
+    public function process(Request $request, TelegramUser $user)
+    {
+        $id = $user->getId();
+        // ...
+    }
+}
+```
+
+There is no need to call `telegramUser()` manually. If no valid user is present
+(the middleware was not applied, or the `user` field failed to parse), the container
+aborts with the configured `error.status` (default `403`) instead of resolving the
+dependency.
+
 ## Examples
 
 Ready-to-copy Mini App examples (authentication, forms, bot replies) live in the

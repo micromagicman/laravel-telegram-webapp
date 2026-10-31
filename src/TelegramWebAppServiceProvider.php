@@ -4,6 +4,7 @@ namespace Micromagicman\TelegramWebApp;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 use TelegramBot\Api\BotApi;
@@ -35,5 +36,16 @@ class TelegramWebAppServiceProvider extends ServiceProvider
             return new BotApi(telegramToken());
         });
         $this->app->singleton(TelegramWebAppService::class);
+        $this->app->scoped(TelegramUser::class, function () {
+            $user = request()->attributes->get(TelegramUser::class);
+            if (! $user instanceof TelegramUser) {
+                abort(
+                    webAppConfig('error.status'),
+                    __(webAppConfig('error.message'))
+                );
+            }
+
+            return $user;
+        });
     }
 }
