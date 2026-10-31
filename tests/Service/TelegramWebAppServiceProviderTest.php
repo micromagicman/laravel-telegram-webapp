@@ -294,6 +294,68 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $this->assertFalse($service->verifyInitData($request));
     }
 
+    protected function useSignatureValidationTokenBotId(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.botToken', '7342037359:TESTTOKEN');
+    }
+
+    protected function useSignatureValidationInvalidKey(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.signature.botId', '7342037359');
+        $app['config']->set('telegram-webapp.signature.publicKey', 'not-a-hex-key');
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_when_signature_missing()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_for_invalid_base64_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'not_a_valid_base64!',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidationTokenBotId')]
+    public function test_signature_validation_derives_bot_id_from_token()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertTrue($service->verifyInitData($this->signatureRequest()));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidationInvalidKey')]
+    public function test_signature_validation_fails_for_invalid_public_key()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertFalse($service->verifyInitData($this->signatureRequest()));
+    }
+
     private function signatureRequest(): Request
     {
         return Request::create('/path', 'GET', [
