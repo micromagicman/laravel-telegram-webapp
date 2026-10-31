@@ -4,6 +4,7 @@ namespace Micromagicman\TelegramWebApp;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Micromagicman\TelegramWebApp\Console\TelegramWebAppInstallCommand;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
@@ -21,9 +22,12 @@ class TelegramWebAppServiceProvider extends ServiceProvider
     public function boot(Router $router): void
     {
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                TelegramWebAppInstallCommand::class,
+            ]);
             $this->publishes([
                 __DIR__.'/../config/telegram-webapp.php' => config_path('telegram-webapp.php'),
-            ]);
+            ], 'telegram-webapp-config');
         }
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'telegram-webapp');
         $router->aliasMiddleware('telegram-webapp', WebAppDataValidationMiddleware::class);

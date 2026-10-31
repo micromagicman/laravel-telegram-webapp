@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
+
+class TelegramWebAppController extends Controller
+{
+    public function index(): View
+    {
+        return view('telegram-webapp');
+    }
+
+    public function user(TelegramUser $user): JsonResponse
+    {
+        return response()->json([
+            'id' => $user->getId(),
+            'first_name' => $user->getFirstName(),
+        ]);
+    }
+}

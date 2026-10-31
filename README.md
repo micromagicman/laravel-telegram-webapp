@@ -25,7 +25,17 @@ composer require micromagicman/laravel-telegram-webapp
 
 ### Publishing
 
-Publish to your Laravel application:
+The quickest way to get started is the install command, which publishes the config,
+scaffolds a sample controller, route file and blade view, and prints the required
+`.env` key:
+
+```bash
+php artisan telegram-webapp:install
+```
+
+To skip the scaffolding and only publish the config, pass `--no-scaffold`.
+
+You can also publish manually:
 
 ```bash
 php artisan vendor:publish --provider="Micromagicman\TelegramWebApp\TelegramWebAppServiceProvider"
