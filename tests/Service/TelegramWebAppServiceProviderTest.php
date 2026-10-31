@@ -263,6 +263,53 @@ class TelegramWebAppServiceProviderTest extends TestCase
         $this->assertSame('abc123', $data->getSignature());
     }
 
+    protected function useSignatureValidation(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.signature.botId', '7342037359');
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_passes_for_valid_telegram_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertTrue($service->verifyInitData($this->signatureRequest()));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_for_tampered_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'tampered-signature-value',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    private function signatureRequest(): Request
+    {
+        return Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'zL-ucjNyREiHDE8aihFwpfR9aggP2xiAo3NSpfe-p7IbCisNlDKlo7Kb6G4D0Ao2mBrSgEk4maLSdv6MLIlADQ',
+        ]);
+    }
+
+    private function signatureUserJson(): string
+    {
+        return '{"id":279058397,"first_name":"Vladislav + - ? \/","last_name":"Kibenko","username":"vdkfrost","language_code":"ru","is_premium":true,"allows_write_to_pm":true,"photo_url":"https:\/\/t.me\/i\/userpic\/320\/4FPEE4tmP3ATHa57u6MqTDih13LTOiMoKoLDRG4PnSA.svg"}';
+    }
+
     private function loadDOM(string $htmlContent): DOMDocument
     {
         $dom = new DOMDocument;

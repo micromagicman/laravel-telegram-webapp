@@ -145,6 +145,29 @@ There is no need to call `telegramUser()` manually. If no valid user is present
 aborts with the configured `error.status` (default `403`) instead of resolving the
 dependency.
 
+## Third-party signature validation
+
+For Mini Apps you do **not** own the bot token of, Telegram also signs the initData
+with its own Ed25519 key. Validate it via the `signature` field (instead of the
+bot-token `hash`) by enabling the feature and, optionally, providing the bot id:
+
+```php
+// config/telegram-webapp.php
+'signature' => [
+    'enabled' => env('TELEGRAM_WEBAPP_SIGNATURE_VALIDATION_ENABLED', false),
+    'publicKey' => env('TELEGRAM_WEBAPP_SIGNATURE_PUBLIC_KEY'),
+    'botId' => env('TELEGRAM_WEBAPP_SIGNATURE_BOT_ID'),
+],
+```
+
+- `publicKey` defaults to Telegram's production Ed25519 key; set the test key for
+  the test environment.
+- `botId` is the numeric id (the part before `:` in the token); when omitted it is
+  derived from `botToken`.
+
+When `enabled` is `true`, the existing bot-token `hash` path is bypassed and the
+Ed25519 `signature` is verified instead.
+
 ## Examples
 
 Ready-to-copy Mini App examples (authentication, forms, bot replies) live in the
