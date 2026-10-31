@@ -1,0 +1,7 @@
+@extends('telegram-webapp::main')
+
+@section('title', 'Telegram WebApp')
+
+@section('content')
+    <div id="app-content"></div>
+@endsection

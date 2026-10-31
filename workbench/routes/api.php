@@ -17,4 +17,5 @@ Route::prefix('/api')
     ->middleware('telegram-webapp')
     ->group(function () {
         Route::post('/telegram-webapp', [TelegramWebAppApiController::class, 'process']);
+        Route::post('/telegram-webapp/user', [TelegramWebAppApiController::class, 'user']);
     });

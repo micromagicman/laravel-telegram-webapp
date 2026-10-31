@@ -18,7 +18,7 @@ class Time
     /**
      * Checking that the provided unixtime has passed
      */
-    public function expired(int $unixTime): int
+    public function expired(int $unixTime): bool
     {
         return $unixTime < $this->now();
     }

@@ -5,6 +5,7 @@ namespace Micromagicman\TelegramWebApp\Tests\Service;
 use BadMethodCallException;
 use DOMDocument;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Facade\TelegramFacade;
@@ -140,6 +141,24 @@ class TelegramWebAppServiceProviderTest extends TestCase
     }
 
     #[Test]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_telegram_user_is_injected_into_controller()
+    {
+        $response = $this->post('/api/telegram-webapp/user?query_id=AAE0m7oLAAAAADSbugtKyT4p&user={"id":111111111,"first_name":"Evgen","last_name":"Evgen","username":"micromagicman","language_code":"xx","is_premium":true,"allows_write_to_pm":true}&auth_date=1698814911&hash=dfe88aa8ef09d25f3de5a4c88dae3058ba480f3fece4dcfda376111617df11da');
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(['id' => 111111111, 'first_name' => 'Evgen'], $response->json());
+    }
+
+    #[Test]
+    #[DefineEnvironment('useCryptoServiceMock')]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_telegram_user_injection_aborts_without_valid_user()
+    {
+        $response = $this->post('/api/telegram-webapp/user?query_id=AAE0m7oLAAAAADSbugtKyT4p&user=NOT_JSON&auth_date=1698814911&hash=1e22c77f7ed7c91699d93eaf3925dc7e84a3ebb695642bb6a7664e34df63cc32');
+        $this->assertEquals(config('telegram-webapp.error.status'), $response->getStatusCode());
+    }
+
+    #[Test]
     #[DefineEnvironment('useCryptoServiceMock')]
     #[DefineEnvironment('useTestTelegramBotToken')]
     #[DefineEnvironment('useAuthDateLifetimeMinute')]
@@ -210,6 +229,147 @@ class TelegramWebAppServiceProviderTest extends TestCase
             BadMethodCallException::class,
             'Method notExists does not exists in Telegram bot api'
         );
+    }
+
+    #[Test]
+    #[DefineEnvironment('useTestTelegramBotToken')]
+    public function test_get_web_app_data_maps_all_fields()
+    {
+        $request = Request::create('/api/telegram-webapp', 'GET', [
+            'query_id' => 'AAE0m7oLAAAAADSbugtKyT4p',
+            'user' => json_encode(['id' => 111111111, 'first_name' => 'Evgen']),
+            'receiver' => json_encode(['id' => 222222222, 'first_name' => 'Other']),
+            'chat' => json_encode(['id' => 333333333, 'type' => 'group', 'title' => 'Test']),
+            'chat_type' => 'group',
+            'chat_instance' => '444444444',
+            'start_param' => 'ref123',
+            'can_send_after' => '1698815000',
+            'auth_date' => '1698814911',
+            'signature' => 'abc123',
+        ]);
+
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $data = $service->getWebAppData($request);
+
+        $this->assertSame('AAE0m7oLAAAAADSbugtKyT4p', $data->getQueryId());
+        $this->assertSame(111111111, $data->getUser()->getId());
+        $this->assertSame(222222222, $data->getReceiver()->getId());
+        $this->assertSame(333333333, $data->getChat()->getId());
+        $this->assertSame('group', $data->getChatType());
+        $this->assertSame('444444444', $data->getChatInstance());
+        $this->assertSame('ref123', $data->getStartParam());
+        $this->assertSame(1698815000, $data->getCanSendAfter());
+        $this->assertSame(1698814911, $data->getAuthDate());
+        $this->assertSame('abc123', $data->getSignature());
+    }
+
+    protected function useSignatureValidation(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.signature.botId', '7342037359');
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_passes_for_valid_telegram_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertTrue($service->verifyInitData($this->signatureRequest()));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_for_tampered_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'tampered-signature-value',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    protected function useSignatureValidationTokenBotId(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.botToken', '7342037359:TESTTOKEN');
+    }
+
+    protected function useSignatureValidationInvalidKey(Application $app): void
+    {
+        $app['config']->set('telegram-webapp.signature.enabled', true);
+        $app['config']->set('telegram-webapp.signature.botId', '7342037359');
+        $app['config']->set('telegram-webapp.signature.publicKey', 'not-a-hex-key');
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_when_signature_missing()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidation')]
+    public function test_signature_validation_fails_for_invalid_base64_signature()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+        $request = Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'not_a_valid_base64!',
+        ]);
+
+        $this->assertFalse($service->verifyInitData($request));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidationTokenBotId')]
+    public function test_signature_validation_derives_bot_id_from_token()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertTrue($service->verifyInitData($this->signatureRequest()));
+    }
+
+    #[Test]
+    #[DefineEnvironment('useSignatureValidationInvalidKey')]
+    public function test_signature_validation_fails_for_invalid_public_key()
+    {
+        $service = new TelegramWebAppService(new StubBotApi, new Crypto, new Time);
+
+        $this->assertFalse($service->verifyInitData($this->signatureRequest()));
+    }
+
+    private function signatureRequest(): Request
+    {
+        return Request::create('/path', 'GET', [
+            'user' => $this->signatureUserJson(),
+            'chat_instance' => '8134722200314281151',
+            'chat_type' => 'private',
+            'auth_date' => '1733584787',
+            'signature' => 'zL-ucjNyREiHDE8aihFwpfR9aggP2xiAo3NSpfe-p7IbCisNlDKlo7Kb6G4D0Ao2mBrSgEk4maLSdv6MLIlADQ',
+        ]);
+    }
+
+    private function signatureUserJson(): string
+    {
+        return '{"id":279058397,"first_name":"Vladislav + - ? \/","last_name":"Kibenko","username":"vdkfrost","language_code":"ru","is_premium":true,"allows_write_to_pm":true,"photo_url":"https:\/\/t.me\/i\/userpic\/320\/4FPEE4tmP3ATHa57u6MqTDih13LTOiMoKoLDRG4PnSA.svg"}';
     }
 
     private function loadDOM(string $htmlContent): DOMDocument
