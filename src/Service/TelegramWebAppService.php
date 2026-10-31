@@ -23,6 +23,11 @@ class TelegramWebAppService
     private const string HASH_QUERY_PARAMETER_KEY = 'hash';
 
     /**
+     * A name of signature query parameter from Telegram (third-party validation)
+     */
+    private const string SIGNATURE_QUERY_PARAMETER_KEY = 'signature';
+
+    /**
      * A name of user query parameter from Telegram
      */
     private const string USER_QUERY_PARAMETER_KEY = 'user';
@@ -69,6 +74,11 @@ class TelegramWebAppService
         if (! $this->telegramInitDataValid($queryParams)) {
             return false;
         }
+
+        if (webAppConfig('signature.enabled')) {
+            return $this->verifySignature($queryParams);
+        }
+
         $requestHash = $queryParams[self::HASH_QUERY_PARAMETER_KEY];
         $hashFromQueryString = $this->createHashFromQueryString($queryParams);
 
@@ -172,6 +182,63 @@ class TelegramWebAppService
         );
 
         return $this->crypto->hmacSHA256($dataCheckString, $dataDigestKey);
+    }
+
+    /**
+     * Verify the third-party Ed25519 signature using Telegram's public key.
+     */
+    private function verifySignature(array $queryParams): bool
+    {
+        $signature = $queryParams[self::SIGNATURE_QUERY_PARAMETER_KEY] ?? null;
+        if (! is_string($signature) || $signature === '') {
+            return false;
+        }
+
+        return $this->crypto->verifyEd25519(
+            $this->createSignatureDataCheckString($queryParams),
+            $signature,
+            webAppConfig('signature.publicKey')
+        );
+    }
+
+    /**
+     * Build the data-check-string Telegram signs for third-party validation:
+     * `{bot_id}:WebAppData\n` followed by every field except `hash` and
+     * `signature`, sorted alphabetically as `key=value` joined by newlines.
+     */
+    private function createSignatureDataCheckString(array $queryParams): string
+    {
+        $data = array_filter(
+            $queryParams,
+            fn ($key) => $key !== self::HASH_QUERY_PARAMETER_KEY
+                && $key !== self::SIGNATURE_QUERY_PARAMETER_KEY,
+            ARRAY_FILTER_USE_KEY
+        );
+        ksort($data);
+        $pairs = implode(
+            PHP_EOL,
+            array_map(
+                fn (string $key, string $value) => "$key=$value",
+                array_keys($data),
+                $data
+            )
+        );
+
+        return $this->resolveBotId().':'.self::SHA256_TOKEN_HASH_KEY.PHP_EOL.$pairs;
+    }
+
+    /**
+     * Numeric bot id used in the third-party data-check-string: either the
+     * dedicated config value or the id parsed from the bot token.
+     */
+    private function resolveBotId(): string
+    {
+        $botId = webAppConfig('signature.botId');
+        if (is_string($botId) && $botId !== '') {
+            return $botId;
+        }
+
+        return explode(':', telegramToken())[0];
     }
 
     /**
