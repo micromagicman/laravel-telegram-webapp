@@ -5,7 +5,9 @@ namespace Micromagicman\TelegramWebApp\Service;
 use BadMethodCallException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Micromagicman\TelegramWebApp\Dto\TelegramChat;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
+use Micromagicman\TelegramWebApp\Dto\TelegramWebAppData;
 use Micromagicman\TelegramWebApp\Util\Crypto;
 use Micromagicman\TelegramWebApp\Util\Time;
 use TelegramBot\Api\BotApi;
@@ -19,6 +21,11 @@ class TelegramWebAppService
      * A name of hash query parameter from Telegram
      */
     private const string HASH_QUERY_PARAMETER_KEY = 'hash';
+
+    /**
+     * A name of signature query parameter from Telegram (third-party validation)
+     */
+    private const string SIGNATURE_QUERY_PARAMETER_KEY = 'signature';
 
     /**
      * A name of user query parameter from Telegram
@@ -67,6 +74,11 @@ class TelegramWebAppService
         if (! $this->telegramInitDataValid($queryParams)) {
             return false;
         }
+
+        if (webAppConfig('signature.enabled')) {
+            return $this->verifySignature($queryParams);
+        }
+
         $requestHash = $queryParams[self::HASH_QUERY_PARAMETER_KEY];
         $hashFromQueryString = $this->createHashFromQueryString($queryParams);
 
@@ -78,18 +90,41 @@ class TelegramWebAppService
      */
     public function getWebAppUser(?Request $request = null): ?TelegramUser
     {
-        $requestQuery = ! $request ? \Illuminate\Support\Facades\Request::query() : $request->query();
-        if (! array_key_exists(self::USER_QUERY_PARAMETER_KEY, $requestQuery)) {
-            return null;
-        }
-        $telegramUserData = json_decode($requestQuery[self::USER_QUERY_PARAMETER_KEY], JSON_OBJECT_AS_ARRAY);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Error parsing Telegram WebApp user data from json', [$requestQuery]);
-
+        $requestQuery = $this->resolveRequestQuery($request);
+        $telegramUserData = $this->decodeJsonParameter($requestQuery[self::USER_QUERY_PARAMETER_KEY] ?? null);
+        if ($telegramUserData === null) {
             return null;
         }
 
         return new TelegramUser($telegramUserData);
+    }
+
+    /**
+     * Get the full Telegram WebApp initData mapped into typed fields.
+     */
+    public function getWebAppData(?Request $request = null): ?TelegramWebAppData
+    {
+        $query = $this->resolveRequestQuery($request);
+        $user = $this->getWebAppUser($request);
+        if ($user === null) {
+            return null;
+        }
+
+        $receiverData = $this->decodeJsonParameter($query['receiver'] ?? null);
+        $chatData = $this->decodeJsonParameter($query['chat'] ?? null);
+
+        return new TelegramWebAppData(
+            query_id: $query['query_id'] ?? null,
+            user: $user,
+            receiver: $receiverData === null ? null : new TelegramUser($receiverData),
+            chat: $chatData === null ? null : new TelegramChat($chatData),
+            chat_type: $query['chat_type'] ?? null,
+            chat_instance: $query['chat_instance'] ?? null,
+            start_param: $query['start_param'] ?? null,
+            can_send_after: isset($query['can_send_after']) ? (int) $query['can_send_after'] : null,
+            auth_date: isset($query['auth_date']) ? (int) $query['auth_date'] : null,
+            signature: $query['signature'] ?? null,
+        );
     }
 
     /**
@@ -101,6 +136,26 @@ class TelegramWebAppService
             return $this->telegramBotApi->{$method}(...$arguments);
         }
         throw new BadMethodCallException("Method $method does not exists in Telegram bot api");
+    }
+
+    private function resolveRequestQuery(?Request $request): array
+    {
+        return ! $request ? \Illuminate\Support\Facades\Request::query() : $request->query();
+    }
+
+    private function decodeJsonParameter(?string $json): ?array
+    {
+        if ($json === null) {
+            return null;
+        }
+        $data = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::error('Error parsing Telegram WebApp data from json', [$json]);
+
+            return null;
+        }
+
+        return $data;
     }
 
     /**
@@ -127,6 +182,63 @@ class TelegramWebAppService
         );
 
         return $this->crypto->hmacSHA256($dataCheckString, $dataDigestKey);
+    }
+
+    /**
+     * Verify the third-party Ed25519 signature using Telegram's public key.
+     */
+    private function verifySignature(array $queryParams): bool
+    {
+        $signature = $queryParams[self::SIGNATURE_QUERY_PARAMETER_KEY] ?? null;
+        if (! is_string($signature) || $signature === '') {
+            return false;
+        }
+
+        return $this->crypto->verifyEd25519(
+            $this->createSignatureDataCheckString($queryParams),
+            $signature,
+            webAppConfig('signature.publicKey')
+        );
+    }
+
+    /**
+     * Build the data-check-string Telegram signs for third-party validation:
+     * `{bot_id}:WebAppData\n` followed by every field except `hash` and
+     * `signature`, sorted alphabetically as `key=value` joined by newlines.
+     */
+    private function createSignatureDataCheckString(array $queryParams): string
+    {
+        $data = array_filter(
+            $queryParams,
+            fn ($key) => $key !== self::HASH_QUERY_PARAMETER_KEY
+                && $key !== self::SIGNATURE_QUERY_PARAMETER_KEY,
+            ARRAY_FILTER_USE_KEY
+        );
+        ksort($data);
+        $pairs = implode(
+            PHP_EOL,
+            array_map(
+                fn (string $key, string $value) => "$key=$value",
+                array_keys($data),
+                $data
+            )
+        );
+
+        return $this->resolveBotId().':'.self::SHA256_TOKEN_HASH_KEY.PHP_EOL.$pairs;
+    }
+
+    /**
+     * Numeric bot id used in the third-party data-check-string: either the
+     * dedicated config value or the id parsed from the bot token.
+     */
+    private function resolveBotId(): string
+    {
+        $botId = webAppConfig('signature.botId');
+        if (is_string($botId) && $botId !== '') {
+            return $botId;
+        }
+
+        return explode(':', telegramToken())[0];
     }
 
     /**

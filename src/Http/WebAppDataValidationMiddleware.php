@@ -5,6 +5,7 @@ namespace Micromagicman\TelegramWebApp\Http;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 
 /**
@@ -23,6 +24,11 @@ readonly class WebAppDataValidationMiddleware
             );
             $this->webAppService->abortWithError();
         }
+
+        $request->attributes->set(
+            TelegramUser::class,
+            $this->webAppService->getWebAppUser($request)
+        );
 
         return $next($request);
     }

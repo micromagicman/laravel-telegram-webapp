@@ -25,7 +25,17 @@ composer require micromagicman/laravel-telegram-webapp
 
 ### Publishing
 
-Publish to your Laravel application:
+The quickest way to get started is the install command, which publishes the config,
+scaffolds a sample controller, route file and blade view, and prints the required
+`.env` key:
+
+```bash
+php artisan telegram-webapp:install
+```
+
+To skip the scaffolding and only publish the config, pass `--no-scaffold`.
+
+You can also publish manually:
 
 ```bash
 php artisan vendor:publish --provider="Micromagicman\TelegramWebApp\TelegramWebAppServiceProvider"
@@ -120,6 +130,53 @@ class MyController extends Controller
 
 Both the facade and the service offer full access to the `BotApi` class methods, 
 allowing you to work seamlessly with the Telegram Bot API in your Laravel application.
+
+## Injecting the Telegram user
+
+When a route is protected by the `telegram-webapp` middleware, the validated user is
+stored on the request and can be injected directly into a controller method — in the
+same style as Laravel's route-model binding:
+
+```php
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
+
+class MyController extends Controller
+{
+    public function process(Request $request, TelegramUser $user)
+    {
+        $id = $user->getId();
+        // ...
+    }
+}
+```
+
+There is no need to call `telegramUser()` manually. If no valid user is present
+(the middleware was not applied, or the `user` field failed to parse), the container
+aborts with the configured `error.status` (default `403`) instead of resolving the
+dependency.
+
+## Third-party signature validation
+
+For Mini Apps you do **not** own the bot token of, Telegram also signs the initData
+with its own Ed25519 key. Validate it via the `signature` field (instead of the
+bot-token `hash`) by enabling the feature and, optionally, providing the bot id:
+
+```php
+// config/telegram-webapp.php
+'signature' => [
+    'enabled' => env('TELEGRAM_WEBAPP_SIGNATURE_VALIDATION_ENABLED', false),
+    'publicKey' => env('TELEGRAM_WEBAPP_SIGNATURE_PUBLIC_KEY'),
+    'botId' => env('TELEGRAM_WEBAPP_SIGNATURE_BOT_ID'),
+],
+```
+
+- `publicKey` defaults to Telegram's production Ed25519 key; set the test key for
+  the test environment.
+- `botId` is the numeric id (the part before `:` in the token); when omitted it is
+  derived from `botToken`.
+
+When `enabled` is `true`, the existing bot-token `hash` path is bypassed and the
+Ed25519 `signature` is verified instead.
 
 ## Examples
 

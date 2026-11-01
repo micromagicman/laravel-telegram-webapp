@@ -35,6 +35,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Third-party signature validation (Ed25519)
+    |--------------------------------------------------------------------------
+    | Telegram also signs initData with its own Ed25519 key, so the data can be
+    | validated without the bot token — only the bot id is required. When
+    | `enabled` is true, the `signature` field is verified against `publicKey`
+    | instead of the bot-token `hash`. This is for Mini Apps you do not own the
+    | bot token of.
+    |--------------------------------------------------------------------------
+    */
+    'signature' => [
+        // Verify the third-party `signature` field instead of the `hash` field
+        'enabled' => (bool) env('TELEGRAM_WEBAPP_SIGNATURE_VALIDATION_ENABLED', false),
+        // Ed25519 public key (hex) used to verify the signature. Defaults to
+        // Telegram's production key.
+        'publicKey' => env(
+            'TELEGRAM_WEBAPP_SIGNATURE_PUBLIC_KEY',
+            'e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d'
+        ),
+        // Numeric bot id (the part before ':' in the token) used to build the
+        // data-check-string. Defaults to the id parsed from `botToken`.
+        'botId' => env('TELEGRAM_WEBAPP_SIGNATURE_BOT_ID'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | HTTP error response format options
     |--------------------------------------------------------------------------
     */

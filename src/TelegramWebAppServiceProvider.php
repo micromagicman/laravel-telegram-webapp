@@ -4,7 +4,10 @@ namespace Micromagicman\TelegramWebApp;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Micromagicman\TelegramWebApp\Console\TelegramWebAppInstallCommand;
+use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use Micromagicman\TelegramWebApp\Http\WebAppDataValidationMiddleware;
+use Micromagicman\TelegramWebApp\Service\TelegramWebAppService;
 use TelegramBot\Api\BotApi;
 
 class TelegramWebAppServiceProvider extends ServiceProvider
@@ -19,9 +22,12 @@ class TelegramWebAppServiceProvider extends ServiceProvider
     public function boot(Router $router): void
     {
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                TelegramWebAppInstallCommand::class,
+            ]);
             $this->publishes([
                 __DIR__.'/../config/telegram-webapp.php' => config_path('telegram-webapp.php'),
-            ]);
+            ], 'telegram-webapp-config');
         }
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'telegram-webapp');
         $router->aliasMiddleware('telegram-webapp', WebAppDataValidationMiddleware::class);
@@ -33,10 +39,17 @@ class TelegramWebAppServiceProvider extends ServiceProvider
         $this->app->singleton(BotApi::class, function () {
             return new BotApi(telegramToken());
         });
-    }
+        $this->app->singleton(TelegramWebAppService::class);
+        $this->app->scoped(TelegramUser::class, function () {
+            $user = request()->attributes->get(TelegramUser::class);
+            if (! $user instanceof TelegramUser) {
+                abort(
+                    webAppConfig('error.status'),
+                    __(webAppConfig('error.message'))
+                );
+            }
 
-    private function serviceEnabled(): bool
-    {
-        return webAppConfig('enabled');
+            return $user;
+        });
     }
 }

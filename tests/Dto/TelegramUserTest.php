@@ -5,47 +5,54 @@ namespace Micromagicman\TelegramWebApp\Tests\Dto;
 use Micromagicman\TelegramWebApp\Dto\TelegramUser;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
 
 class TelegramUserTest extends TestCase
 {
-    /**
-     * @throws ReflectionException - if getter is absent in {@link TelegramUser}
-     */
     #[Test]
-    public function test_user_dto_has_getter_on_each_field()
+    public function test_user_dto_maps_all_fields()
     {
-        $testUserData = [
+        $user = new TelegramUser([
             'id' => 111111111,
+            'is_bot' => false,
             'first_name' => 'Evgen',
             'last_name' => 'Evgen',
             'username' => 'micromagicman',
-            'language_code' => 'xx',
+            'language_code' => 'ru',
             'is_premium' => true,
+            'added_to_attachment_menu' => true,
             'allows_write_to_pm' => true,
-        ];
-        $testUser = new TelegramUser($testUserData);
+            'photo_url' => 'https://t.me/i/userpic/320/evgen.jpg',
+        ]);
 
-        $reflection = new ReflectionClass(TelegramUser::class);
-        foreach ($reflection->getProperties() as $property) {
-            if (! $property->isStatic()) {
-                $propertyType = $property->getType();
-                $propertyName = $property->getName();
-                $expectedValue = $testUserData[$propertyName];
-                $methodPrefix = $propertyType->getName() === 'bool' ? 'is' : 'get';
-                $propertyCamelCase = $this->snakeCaseToCamelCase(mb_strtolower($property->getName()));
-                $methodName = str_starts_with($propertyCamelCase, 'is')
-                    ? $propertyCamelCase
-                    : $methodPrefix.ucfirst($propertyCamelCase);
-                $method = $reflection->getMethod($methodName);
-                $this->assertEquals($expectedValue, $method->invoke($testUser));
-            }
-        }
+        $this->assertSame(111111111, $user->getId());
+        $this->assertFalse($user->isBot());
+        $this->assertSame('Evgen', $user->getFirstName());
+        $this->assertSame('Evgen', $user->getLastName());
+        $this->assertSame('micromagicman', $user->getUsername());
+        $this->assertSame('ru', $user->getLanguageCode());
+        $this->assertTrue($user->isPremium());
+        $this->assertTrue($user->isAddedToAttachmentMenu());
+        $this->assertTrue($user->isAllowsWriteToPm());
+        $this->assertSame('https://t.me/i/userpic/320/evgen.jpg', $user->getPhotoUrl());
     }
 
-    private function snakeCaseToCamelCase(string $source): string
+    #[Test]
+    public function test_user_dto_optional_fields_default_to_null()
     {
-        return lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $source))));
+        $user = new TelegramUser([
+            'id' => 111111111,
+            'first_name' => 'Evgen',
+        ]);
+
+        $this->assertSame(111111111, $user->getId());
+        $this->assertSame('Evgen', $user->getFirstName());
+        $this->assertNull($user->isBot());
+        $this->assertNull($user->getLastName());
+        $this->assertNull($user->getUsername());
+        $this->assertNull($user->getLanguageCode());
+        $this->assertNull($user->isPremium());
+        $this->assertNull($user->isAddedToAttachmentMenu());
+        $this->assertNull($user->isAllowsWriteToPm());
+        $this->assertNull($user->getPhotoUrl());
     }
 }
